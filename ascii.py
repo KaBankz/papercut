@@ -151,9 +151,8 @@ def print_receipt(webhook: LinearWebhook) -> None:
 
     print_line("", width)
 
-    # Timestamp
-    now = datetime.now().strftime("%b %d, %Y at %I:%M %p")
-    print_line(" " * padding + now + " " * padding, width)
+    created_at = data.createdAt.strftime("%b %d, %Y at %I:%M %p")
+    print_line(" " * padding + created_at + " " * padding, width)
     print_line("", width)
 
     # Details in two-column format (label left, value right-aligned)
