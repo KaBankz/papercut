@@ -1,28 +1,25 @@
 import hmac
 import hashlib
 import json
-import os
 from datetime import datetime
 from fastapi import FastAPI, Request, HTTPException
-from dotenv import load_dotenv
 
 from models import LinearWebhook
-
-load_dotenv()
+from config import (
+    LINEAR_SIGNING_SECRET,
+    COMPANY_NAME,
+    COMPANY_ADDRESS_LINE1,
+    COMPANY_ADDRESS_LINE2,
+    COMPANY_ADDRESS_LINE3,
+    COMPANY_URL,
+    COMPANY_PHONE,
+    COMPANY_TAGLINE,
+    RECEIPT_WIDTH,
+    RECEIPT_PADDING,
+    RECEIPT_INNER_WIDTH,
+)
 
 app = FastAPI(title="Linear Webhook Handler")
-
-LINEAR_SIGNING_SECRET = os.getenv("LINEAR_SIGNING_SECRET")
-if not LINEAR_SIGNING_SECRET:
-    raise ValueError("LINEAR_SIGNING_SECRET environment variable is not set")
-
-COMPANY_NAME = os.getenv("COMPANY_NAME", "Your Company")
-COMPANY_ADDRESS_LINE1 = os.getenv("COMPANY_ADDRESS_LINE1", "123 Main St")
-COMPANY_ADDRESS_LINE2 = os.getenv("COMPANY_ADDRESS_LINE2", "City, State 12345")
-COMPANY_ADDRESS_LINE3 = os.getenv("COMPANY_ADDRESS_LINE3", "")  # Optional third line
-COMPANY_URL = os.getenv("COMPANY_URL", "https://krabby.dev")
-COMPANY_PHONE = os.getenv("COMPANY_PHONE", "+ 1 123 456 7890")
-COMPANY_TAGLINE = os.getenv("COMPANY_TAGLINE", "Made with ❤️ by KaBanks")
 
 
 def verify_linear_signature(payload_body: bytes, signature: str) -> bool:
@@ -39,21 +36,25 @@ def verify_linear_signature(payload_body: bytes, signature: str) -> bool:
     return hmac.compare_digest(expected_signature, signature)
 
 
-def print_border_line(width: int = 48, style: str = "top") -> None:
+def print_border_line(width: int = None, style: str = "top") -> None:
     """
     Print a border line for the receipt.
     """
+    if width is None:
+        width = RECEIPT_WIDTH
     if style == "top":
         print("┌" + "─" * width + "┐")
     elif style == "bottom":
         print("└" + "─" * width + "┘")
 
 
-def print_line(content: str, width: int = 48) -> None:
+def print_line(content: str, width: int = None) -> None:
     """
     Print a line with borders on both sides.
     Content should be exactly 'width' characters.
     """
+    if width is None:
+        width = RECEIPT_WIDTH
     # Ensure content is exactly the right width
     if len(content) < width:
         content = content + " " * (width - len(content))
@@ -62,13 +63,20 @@ def print_line(content: str, width: int = 48) -> None:
     print("│" + content + "│")
 
 
-def wrap_two_column(label: str, value: str, width: int = 48, padding: int = 2) -> None:
+def wrap_two_column(
+    label: str, value: str, width: int = None, padding: int = None
+) -> None:
     """
     Print text in two-column format with wrapping.
     Left column shows the label, right column shows the value (right-aligned to the edge).
     Each column's content can be up to 45% of the usable width to maintain visual separation.
     Both columns will wrap if they exceed their maximum width.
     """
+    if width is None:
+        width = RECEIPT_WIDTH
+    if padding is None:
+        padding = RECEIPT_PADDING
+
     usable_width = width - (padding * 2)  # Account for both left and right padding
     max_col_width = int(
         usable_width * 0.45
@@ -109,9 +117,9 @@ def print_receipt(webhook: LinearWebhook) -> None:
     Classic thermal receipt printer style with borders.
     """
     data = webhook.data
-    width = 48
-    padding = 2  # Padding on both left and right sides
-    inner_width = width - (padding * 2)
+    width = RECEIPT_WIDTH
+    padding = RECEIPT_PADDING
+    inner_width = RECEIPT_INNER_WIDTH
 
     # Top border
     print("\n")
