@@ -111,18 +111,17 @@ def print_receipt(webhook: LinearWebhook) -> None:
     padding = RECEIPT_PADDING
     inner_width = RECEIPT_INNER_WIDTH
 
-    # Top border
     print("\n")
     print_border_line(width, "top")
 
-    # Empty line
     print_line("", width)
 
-    # Company header - centered within padded area
-    print_line(" " * padding + COMPANY_NAME.center(inner_width) + " " * padding, width)
-    print_line("", width)
+    if COMPANY_NAME:
+        print_line(
+            " " * padding + COMPANY_NAME.center(inner_width) + " " * padding, width
+        )
+        print_line("", width)
 
-    # Company address (multiple lines)
     if COMPANY_ADDRESS_LINE1:
         print_line(
             " " * padding + COMPANY_ADDRESS_LINE1.center(inner_width) + " " * padding,
@@ -139,11 +138,17 @@ def print_receipt(webhook: LinearWebhook) -> None:
             width,
         )
 
-    print_line(
-        " " * padding + f"Tel: {COMPANY_PHONE}".center(inner_width) + " " * padding,
-        width,
-    )
-    print_line(" " * padding + COMPANY_URL.center(inner_width) + " " * padding, width)
+    if COMPANY_PHONE:
+        print_line(
+            " " * padding + f"Tel: {COMPANY_PHONE}".center(inner_width) + " " * padding,
+            width,
+        )
+
+    if COMPANY_URL:
+        print_line(
+            " " * padding + COMPANY_URL.center(inner_width) + " " * padding, width
+        )
+
     print_line("", width)
 
     # Timestamp
@@ -189,13 +194,12 @@ def print_receipt(webhook: LinearWebhook) -> None:
     print_line(" " * padding + "─" * inner_width + " " * padding, width)
     print_line("", width)
 
-    # Footer tagline - centered within padded area
-    print_line(
-        " " * padding + COMPANY_TAGLINE.center(inner_width) + " " * padding,
-        width,
-    )
-    print_line("", width)
+    if COMPANY_TAGLINE:
+        print_line(
+            " " * padding + COMPANY_TAGLINE.center(inner_width) + " " * padding,
+            width,
+        )
+        print_line("", width)
 
-    # Bottom border
     print_border_line(width, "bottom")
     print()
