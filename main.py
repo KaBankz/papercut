@@ -2,13 +2,36 @@ import hmac
 import hashlib
 import json
 import time
+from typing import Optional
 from fastapi import FastAPI, Request, HTTPException
+from pydantic import BaseModel, Field
 
 from models import LinearWebhook
 from config import LINEAR_SIGNING_SECRET
 from ascii import print_receipt
 
-app = FastAPI(title="Linear Webhook Handler")
+app = FastAPI(
+    title="Linear Ticket Printer",
+    description="Print out linear tickets on a thermal printer.",
+    version="0.1.0",
+)
+
+
+class WebhookResponse(BaseModel):
+    """Response from the webhook endpoint"""
+
+    status: str = Field(..., description="Status of the webhook processing")
+    ignored: Optional[bool] = Field(None, description="Whether the webhook was ignored")
+    type: Optional[str] = Field(None, description="Type of Linear event")
+    action: Optional[str] = Field(None, description="Action that was performed")
+    timestamp: Optional[int] = Field(None, description="Unix timestamp in milliseconds")
+
+
+class HealthCheckResponse(BaseModel):
+    """Response from the health check endpoint"""
+
+    status: str = Field(..., description="Server status")
+    message: str = Field(..., description="Status message")
 
 
 def verify_linear_signature(payload_body: bytes, signature: str) -> bool:
@@ -42,11 +65,20 @@ def verify_webhook_timestamp(webhook_timestamp: int, max_age_seconds: int = 60) 
     return age_ms <= (max_age_seconds * 1000)
 
 
-@app.post("/")
-async def handle_linear_webhook(request: Request):
+@app.post("/", response_model=WebhookResponse, summary="Linear Webhook Handler")
+async def handle_linear_webhook(request: Request) -> WebhookResponse:
     """
     Handle incoming webhooks from Linear.
-    Linear will POST to this endpoint when events occur.
+
+    This endpoint:
+    - Verifies HMAC-SHA256 signature
+    - Validates timestamp (60-second window)
+    - Processes Issue:create events (prints ASCII receipt)
+    - Silently ignores all other webhook types
+
+    Security:
+    - Requires `Linear-Signature` header
+    - Rejects old webhooks (replay attack prevention)
     """
     # Get the signature from headers
     signature = request.headers.get("Linear-Signature")
@@ -67,7 +99,7 @@ async def handle_linear_webhook(request: Request):
     except json.JSONDecodeError as e:
         # Silently ignore malformed JSON
         print(f"⚪ Ignoring malformed JSON: {e}")
-        return {"status": "received", "ignored": True}
+        return WebhookResponse(status="received", ignored=True)
 
     # Verify webhook timestamp to prevent replay attacks
     webhook_timestamp = payload_dict.get("webhookTimestamp")
@@ -84,7 +116,7 @@ async def handle_linear_webhook(request: Request):
     if webhook_type != "Issue" or webhook_action != "create":
         # Silently ignore all other webhook types/actions
         print(f"⚪ Ignoring webhook: {webhook_type}:{webhook_action}")
-        return {"status": "received", "ignored": True}
+        return WebhookResponse(status="received", ignored=True)
 
     # Parse into type-safe Pydantic model (only for Issue creation)
     try:
@@ -94,21 +126,25 @@ async def handle_linear_webhook(request: Request):
     except Exception as e:
         # Silently ignore if parsing fails
         print(f"⚪ Ignoring unparseable webhook: {e}")
-        return {"status": "received", "ignored": True}
+        return WebhookResponse(status="received", ignored=True)
 
     # Always return 200 OK so Linear knows we received it
-    return {
-        "status": "received",
-        "type": webhook.type,
-        "action": webhook.action,
-        "timestamp": webhook.webhookTimestamp,
-    }
+    return WebhookResponse(
+        status="received",
+        type=webhook.type,
+        action=webhook.action,
+        timestamp=webhook.webhookTimestamp,
+    )
 
 
-@app.get("/")
-async def root():
-    """Health check endpoint - confirms the server is running"""
-    return {"status": "ok", "message": "Linear webhook server is running"}
+@app.get("/", response_model=HealthCheckResponse, summary="Health Check")
+async def root() -> HealthCheckResponse:
+    """
+    Health check endpoint.
+
+    Returns server status to confirm the webhook server is running.
+    """
+    return HealthCheckResponse(status="ok", message="Linear webhook server is running")
 
 
 if __name__ == "__main__":
