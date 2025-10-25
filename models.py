@@ -87,15 +87,26 @@ class IssueData(BaseModel):
 
 
 class LinearWebhook(BaseModel):
-    """The complete Linear webhook payload"""
+    """
+    Linear webhook payload for Issue creation events.
+
+    This model is specifically designed for Issue:create webhooks.
+    All other webhook types are filtered out before parsing.
+
+    See: https://linear.app/developers/webhooks#data-change-events-payload
+    """
 
     action: str  # "create", "update", "remove"
     actor: Actor
     createdAt: datetime
-    data: IssueData
+    data: IssueData  # Issue data for Issue webhooks
     url: str
     type: str  # "Issue", "Comment", "Project", etc.
     organizationId: str
     webhookTimestamp: int  # Unix timestamp in milliseconds
     webhookId: str
     updatedFrom: Optional[dict] = None  # Only present for "update" actions
+
+    class Config:
+        # Allow extra fields for different webhook types
+        extra = "allow"

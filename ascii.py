@@ -98,7 +98,14 @@ def print_receipt(webhook: LinearWebhook) -> None:
     """
     Print a beautiful ASCII receipt for a newly created issue.
     Classic thermal receipt printer style with borders.
+
+    Note: This function should only be called for Issue webhooks.
     """
+    # Ensure we're handling an Issue webhook with proper data structure
+    if webhook.type != "Issue":
+        print(f"⚠️  print_receipt called with non-Issue webhook type: {webhook.type}")
+        return
+
     data = webhook.data
     width = RECEIPT_WIDTH
     padding = RECEIPT_PADDING

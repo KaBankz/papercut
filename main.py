@@ -1,6 +1,7 @@
 import hmac
 import hashlib
 import json
+import time
 from fastapi import FastAPI, Request, HTTPException
 
 from models import LinearWebhook
@@ -24,6 +25,23 @@ def verify_linear_signature(payload_body: bytes, signature: str) -> bool:
     return hmac.compare_digest(expected_signature, signature)
 
 
+def verify_webhook_timestamp(webhook_timestamp: int, max_age_seconds: int = 60) -> bool:
+    """
+    Verify that the webhook timestamp is recent to prevent replay attacks.
+    Linear recommends checking that the timestamp is within 60 seconds.
+
+    Args:
+        webhook_timestamp: Unix timestamp in milliseconds from webhook payload
+        max_age_seconds: Maximum age in seconds (default: 60)
+
+    Returns:
+        True if timestamp is within the acceptable range, False otherwise
+    """
+    current_time_ms = int(time.time() * 1000)
+    age_ms = abs(current_time_ms - webhook_timestamp)
+    return age_ms <= (max_age_seconds * 1000)
+
+
 @app.post("/")
 async def handle_linear_webhook(request: Request):
     """
@@ -44,38 +62,39 @@ async def handle_linear_webhook(request: Request):
         raise HTTPException(status_code=401, detail="Invalid signature")
 
     # Parse the JSON payload
-    payload_dict = json.loads(payload_body)
+    try:
+        payload_dict = json.loads(payload_body)
+    except json.JSONDecodeError as e:
+        # Silently ignore malformed JSON
+        print(f"⚪ Ignoring malformed JSON: {e}")
+        return {"status": "received", "ignored": True}
 
-    # Parse into type-safe Pydantic model
+    # Verify webhook timestamp to prevent replay attacks
+    webhook_timestamp = payload_dict.get("webhookTimestamp")
+    if webhook_timestamp and not verify_webhook_timestamp(webhook_timestamp):
+        print("⚠️  Webhook timestamp too old - rejecting to prevent replay attack")
+        raise HTTPException(
+            status_code=401, detail="Webhook timestamp outside acceptable range"
+        )
+
+    # Quick check: only process Issue creation events
+    webhook_type = payload_dict.get("type")
+    webhook_action = payload_dict.get("action")
+
+    if webhook_type != "Issue" or webhook_action != "create":
+        # Silently ignore all other webhook types/actions
+        print(f"⚪ Ignoring webhook: {webhook_type}:{webhook_action}")
+        return {"status": "received", "ignored": True}
+
+    # Parse into type-safe Pydantic model (only for Issue creation)
     try:
         webhook = LinearWebhook(**payload_dict)
-    except Exception as e:
-        print(f"⚠️  Failed to parse webhook: {e}")
-        # Still return 200 to Linear, but log the error
-        return {"status": "received", "error": "parse_error"}
-
-    # Handle specific events
-    if webhook.type == "Issue" and webhook.action == "create":
         # Print the beautiful receipt! 🎫
         print_receipt(webhook)
-
-        # Add your custom logic here
-        # For example: send to actual thermal printer, save to database, etc.
-
-    elif webhook.type == "Issue" and webhook.action == "update":
-        print(f"\n📝 ISSUE UPDATED: {webhook.data.identifier}")
-        if webhook.updatedFrom:
-            print(f"   Changed fields: {', '.join(webhook.updatedFrom.keys())}")
-        print()
-
-    elif webhook.type == "Comment" and webhook.action == "create":
-        print(f"\n💬 NEW COMMENT on {webhook.url}")
-        print(f"   Author: {webhook.actor.name}")
-        print()
-
-    else:
-        print(f"\n📌 Event: {webhook.type} - {webhook.action}")
-        print()
+    except Exception as e:
+        # Silently ignore if parsing fails
+        print(f"⚪ Ignoring unparseable webhook: {e}")
+        return {"status": "received", "ignored": True}
 
     # Always return 200 OK so Linear knows we received it
     return {
