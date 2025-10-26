@@ -1,5 +1,5 @@
-"""Platform-specific webhook adapters."""
+"""Platform-specific webhook adapters and routers."""
 
-from papercut.platforms.linear import LinearWebhook, LinearAdapter
+from papercut.platforms import linear
 
-__all__ = ["LinearWebhook", "LinearAdapter"]
+__all__ = ["linear"]
