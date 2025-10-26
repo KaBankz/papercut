@@ -15,3 +15,10 @@ services:
       # - COMPANY_PHONE=
       # - COMPANY_TAGLINE=
     restart: unless-stopped
+
+  cloudflared:
+    image: docker.io/cloudflare/cloudflared:2025.6.1
+    command: tunnel --no-autoupdate run
+    environment:
+      - TUNNEL_TOKEN=${TUNNEL_TOKEN}
+    restart: unless-stopped
