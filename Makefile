@@ -13,7 +13,14 @@ LICENSE := $(shell grep '^license = ' pyproject.toml | cut -d'"' -f2)
 AUTHORS := $(shell grep '^authors = ' pyproject.toml | sed -E 's/.*name = "([^"]*)".*email = "([^"]*)".*/\1 <\2>/' || echo "Unknown")
 BUILD_DATE := $(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
 VCS_REF := $(shell git rev-parse --short HEAD 2>/dev/null || echo "unknown")
-VCS_URL := $(shell git config --get remote.origin.url 2>/dev/null | sed 's/\.git$$//' || echo "https://github.com/yourusername/linear-ticket-printer")
+
+# Convert git remote URL to HTTPS format (handles both SSH and HTTPS)
+# git@github.com:user/repo.git → https://github.com/user/repo
+# https://github.com/user/repo.git → https://github.com/user/repo
+VCS_URL := $(shell git config --get remote.origin.url 2>/dev/null | \
+	sed -E 's|^git@github\.com:|https://github.com/|' | \
+	sed -E 's|^git@gitlab\.com:|https://gitlab.com/|' | \
+	sed 's/\.git$$//')
 
 # Auto-generate title from project name (replace dashes with spaces, capitalize each word)
 TITLE := $(shell echo $(PROJECT_NAME) | tr '-' ' ' | awk '{for(i=1;i<=NF;i++) $$i=toupper(substr($$i,1,1)) tolower(substr($$i,2))}1')
