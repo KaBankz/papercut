@@ -1,8 +1,9 @@
-.PHONY: build clean inspect help
+.PHONY: build clean inspect help dev start
 
 # Image configuration
 IMAGE_NAME := papercut
 IMAGE_TAG := latest
+CONTAINER_NAME := papercut
 REGISTRY := # Leave empty for local builds, or set to docker.io/username
 
 # Build metadata - Single source of truth from pyproject.toml and git
@@ -31,6 +32,12 @@ FULL_IMAGE_NAME := $(if $(REGISTRY),$(REGISTRY)/$(IMAGE_NAME),$(IMAGE_NAME))
 help: ## Show this help message
 	@echo "Available targets:"
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2}'
+
+dev: ## Run development server with auto-reload
+	uv run uvicorn papercut.api:app --reload
+
+start: ## Run production server
+	uv run python main.py
 
 build: ## Build the Docker image with OCI labels
 	@echo "Building $(FULL_IMAGE_NAME):$(IMAGE_TAG)..."
@@ -69,7 +76,7 @@ inspect: ## Inspect image labels
 
 run: ## Run the container locally
 	docker run -d \
-		--name linear-printer \
+		--name $(CONTAINER_NAME) \
 		-p 8000:8000 \
 		--env-file .env \
 		--restart unless-stopped \
@@ -77,8 +84,8 @@ run: ## Run the container locally
 	@echo "✅ Container running on http://localhost:8000"
 
 stop: ## Stop and remove the container
-	docker stop linear-printer 2>/dev/null || true
-	docker rm linear-printer 2>/dev/null || true
+	docker stop $(CONTAINER_NAME) 2>/dev/null || true
+	docker rm $(CONTAINER_NAME) 2>/dev/null || true
 
 clean: stop ## Clean up images and containers
 	docker rmi $(FULL_IMAGE_NAME):$(IMAGE_TAG) 2>/dev/null || true
@@ -87,6 +94,6 @@ clean: stop ## Clean up images and containers
 	@echo "✅ Cleanup complete!"
 
 logs: ## Show container logs
-	docker logs -f linear-printer
+	docker logs -f $(CONTAINER_NAME)
 
 all: build run ## Build and run the container

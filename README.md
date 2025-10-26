@@ -24,13 +24,13 @@ All `COMPANY_` prefixed variables are optional, omitting them will fallback to d
 **Development (with auto-reload):**
 
 ```bash
-uv run uvicorn papercut.api:app --reload
+make dev
 ```
 
 **Production:**
 
 ```bash
-uv run python main.py
+make start
 ```
 
 Server runs on `http://localhost:8000`
