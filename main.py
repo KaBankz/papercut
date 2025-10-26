@@ -11,8 +11,8 @@ from config import LINEAR_SIGNING_SECRET
 from ascii import print_receipt
 
 app = FastAPI(
-    title="Linear Ticket Printer",
-    description="Print out linear tickets on a thermal printer.",
+    title="Papercut",
+    description="Print your tickets on a real receipt printer",
     version="0.1.0",
 )
 
@@ -73,7 +73,7 @@ async def handle_linear_webhook(request: Request) -> WebhookResponse:
     This endpoint:
     - Verifies HMAC-SHA256 signature
     - Validates timestamp (60-second window)
-    - Processes Issue:create events (prints ASCII receipt)
+    - Processes Issue:create events (prints receipt)
     - Silently ignores all other webhook types
 
     Security:
@@ -142,9 +142,9 @@ async def root() -> HealthCheckResponse:
     """
     Health check endpoint.
 
-    Returns server status to confirm the webhook server is running.
+    Returns server status to confirm Papercut is running.
     """
-    return HealthCheckResponse(status="ok", message="Linear webhook server is running")
+    return HealthCheckResponse(status="ok", message="Papercut is running")
 
 
 if __name__ == "__main__":

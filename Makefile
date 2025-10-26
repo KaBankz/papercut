@@ -1,7 +1,7 @@
 .PHONY: build clean inspect help
 
 # Image configuration
-IMAGE_NAME := linear-ticket-printer
+IMAGE_NAME := papercut
 IMAGE_TAG := latest
 REGISTRY := # Leave empty for local builds, or set to docker.io/username
 

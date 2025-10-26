@@ -1,8 +1,8 @@
-name: ltp
+name: papercut
 
 services:
-  linear-ticket-printer:
-    image: linear-ticket-printer:latest
+  papercut:
+    image: papercut:latest
     ports:
       - 8000:8000
     environment:

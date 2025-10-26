@@ -1,5 +1,5 @@
 """
-Configuration settings for the Linear Ticket Printer.
+Configuration settings for Papercut.
 Loads environment variables and defines application constants.
 """
 

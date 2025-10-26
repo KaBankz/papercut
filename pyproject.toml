@@ -1,7 +1,7 @@
 [project]
-name = "linear-ticket-printer"
+name = "papercut"
 version = "0.1.0"
-description = "Print out linear tickets on a thermal printer."
+description = "Print your tickets on a real receipt printer"
 readme = "README.md"
 authors = [{ name = "KaBanks", email = "hi@krabby.dev" }]
 license = "MIT"
@@ -10,4 +10,5 @@ dependencies = [
   "fastapi>=0.115.0",
   "uvicorn[standard]>=0.32.0",
   "python-dotenv>=1.0.0",
+  "python-escpos>=3.0",
 ]

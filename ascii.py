@@ -1,6 +1,6 @@
 """
-ASCII receipt printing functions.
-Handles all the visual formatting and rendering of Linear tickets as ASCII receipts.
+Console receipt preview functions.
+Formats Linear tickets as ASCII receipts for console logging.
 """
 
 from datetime import datetime
@@ -96,9 +96,9 @@ def wrap_two_column(
 
 def print_receipt(webhook: LinearWebhook) -> None:
     """
-    Print a beautiful ASCII receipt for a newly created issue.
-    Classic thermal receipt printer style with borders.
-
+    Print a console preview of the receipt for a newly created issue.
+    Mimics receipt printer formatting with ASCII borders.
+    
     Note: This function should only be called for Issue webhooks.
     """
     # Ensure we're handling an Issue webhook with proper data structure
