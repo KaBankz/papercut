@@ -24,7 +24,13 @@ All `COMPANY_` prefixed variables are optional, omitting them will fallback to d
 **Development (with auto-reload):**
 
 ```bash
-uv run uvicorn main:app --reload --host 0.0.0.0 --port 8000
+uv run uvicorn papercut.api:app --reload
+```
+
+**Production:**
+
+```bash
+uv run python main.py
 ```
 
 Server runs on `http://localhost:8000`
@@ -36,7 +42,7 @@ Server runs on `http://localhost:8000`
 **Docker (Optional):**
 
 ```bash
-make build && make compose-up
+make compose-up
 ```
 
 ### 4. Expose to Internet
