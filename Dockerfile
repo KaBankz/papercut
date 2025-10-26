@@ -48,7 +48,8 @@ WORKDIR /app
 
 COPY --from=builder /app/.venv /app/.venv
 
-COPY *.py ./
+COPY src/ ./src/
+COPY config.py main.py ./
 
 # Create non-root user for security
 RUN addgroup -g 1000 appuser && \

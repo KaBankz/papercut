@@ -1,11 +1,13 @@
 """
-Pydantic models for Linear webhook payloads.
-Provides type-safe access to all webhook data.
+Linear platform integration.
+Models and adapter for Linear webhook payloads.
 """
 
 from datetime import datetime, date
 from typing import Optional, List
 from pydantic import BaseModel
+
+from papercut.core.models import Ticket
 
 
 class Actor(BaseModel):
@@ -110,3 +112,35 @@ class LinearWebhook(BaseModel):
     class Config:
         # Allow extra fields for different webhook types
         extra = "allow"
+
+
+class LinearAdapter:
+    """Adapter to convert Linear webhooks to platform-agnostic Ticket model."""
+
+    @staticmethod
+    def to_ticket(webhook: LinearWebhook) -> Ticket:
+        """
+        Convert a Linear webhook to a platform-agnostic Ticket.
+
+        Args:
+            webhook: Linear webhook payload
+
+        Returns:
+            Ticket: Platform-agnostic ticket model
+        """
+        data = webhook.data
+        return Ticket(
+            id=data.id,
+            identifier=data.identifier,
+            title=data.title,
+            description=data.description,
+            status=data.state.name,
+            priority=data.priorityLabel,
+            assignee=data.assignee.name if data.assignee else None,
+            labels=[label.name for label in data.labels],
+            created_at=data.createdAt,
+            created_by=webhook.actor.name,
+            team=data.team.name,
+            due_date=data.dueDate,
+            url=data.url,
+        )
