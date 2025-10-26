@@ -18,7 +18,7 @@ def print_to_printer(ticket: Ticket) -> None:
     - QR codes with ticket URL
     - Professional receipt layout
 
-    Compatible with any standard receipt printer (EPSON TM-T88III, Star Micronics, etc.)
+    Compatible with any standard receipt printer (EPSON TM-T88III, etc.)
 
     Args:
         ticket: The ticket to print

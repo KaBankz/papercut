@@ -2,9 +2,13 @@ $schema: https://raw.githubusercontent.com/streetsidesoftware/cspell/main/cspell
 version: "0.2"
 allowCompoundWords: true
 useGitignore: true
+dictionaries:
+  - python
 words:
   - ASGI
   - dotenv
-  - papercut
+  - libstdc
+  - PYTHONUNBUFFERED
+  - tolower
+  - toupper
   - unstarted
-  - uvicorn
