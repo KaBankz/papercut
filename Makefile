@@ -1,4 +1,4 @@
-.PHONY: build clean inspect help dev start
+.PHONY: build clean inspect help dev start env-clean
 
 # Image configuration
 IMAGE_NAME := papercut
@@ -95,5 +95,10 @@ clean: stop ## Clean up images and containers
 
 logs: ## Show container logs
 	docker logs -f $(CONTAINER_NAME)
+
+env-clean: ## Clean up python environment
+	rm -rdf .venv
+	find . | grep -E "(__pycache__|\.pyc$$)" | xargs rm -rf
+	@echo "✅ Python environment cleaned!"
 
 all: build run ## Build and run the container
