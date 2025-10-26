@@ -11,3 +11,6 @@ wheels/
 
 # Environment variables
 .env
+
+# Generated files (created on-demand by Makefile)
+.dockerignore

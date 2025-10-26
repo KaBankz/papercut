@@ -39,6 +39,21 @@ The server will start on `http://localhost:8000`
 - Health check: `GET http://localhost:8000/`
 - API docs: `http://localhost:8000/docs`
 
+**Run with Docker:**
+
+Using the Makefile:
+
+```bash
+# Build the image
+make build
+
+# Run the container
+make run
+
+# Or build and run with compose
+make compose-up
+```
+
 ### 4. Expose to Internet
 
 Linear needs to reach your webhook from the internet.

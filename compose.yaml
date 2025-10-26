@@ -1,0 +1,17 @@
+name: ltp
+
+services:
+  linear-ticket-printer:
+    image: linear-ticket-printer:latest
+    ports:
+      - 8000:8000
+    environment:
+      - LINEAR_SIGNING_SECRET=
+      # - COMPANY_NAME=
+      # - COMPANY_ADDRESS_LINE1=
+      # - COMPANY_ADDRESS_LINE2=
+      # - COMPANY_ADDRESS_LINE3=
+      # - COMPANY_URL=
+      # - COMPANY_PHONE=
+      # - COMPANY_TAGLINE=
+    restart: unless-stopped

@@ -3,6 +3,8 @@ name = "linear-ticket-printer"
 version = "0.1.0"
 description = "Print out linear tickets on a thermal printer."
 readme = "README.md"
+authors = [{ name = "KaBanks", email = "hi@krabby.dev" }]
+license = "MIT"
 requires-python = ">=3.14"
 dependencies = [
   "fastapi>=0.115.0",
