@@ -12,9 +12,9 @@ from fastapi import APIRouter, Request, HTTPException
 from pydantic import BaseModel, Field
 
 from papercut.core.models import Ticket
+from papercut.core.console import print_console_preview
+from papercut.core.printer import print_to_printer
 from papercut.platforms.linear.models import LinearWebhook
-from papercut.outputs.console import print_console_preview
-from papercut.outputs.printer import print_to_printer
 from config import LINEAR_SIGNING_SECRET
 
 
