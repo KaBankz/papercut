@@ -35,4 +35,3 @@ PRINTER_USB_PRODUCT_ID = os.getenv("PRINTER_USB_PRODUCT_ID", "0x0e28")
 
 # Printer Features
 PRINTER_LOGO_PATH = os.getenv("PRINTER_LOGO_PATH", "")  # Optional company logo image
-PRINTER_QR_SIZE = int(os.getenv("PRINTER_QR_SIZE", "6"))  # QR code size (1-16)

@@ -19,7 +19,6 @@ from config import (
     PRINTER_USB_VENDOR_ID,
     PRINTER_USB_PRODUCT_ID,
     PRINTER_LOGO_PATH,
-    PRINTER_QR_SIZE,
 )
 
 logger = logging.getLogger(__name__)
@@ -229,7 +228,7 @@ def print_to_printer(ticket: Ticket) -> None:
         p.text("\n")
         p.set(align="center")
         p.text("Scan for details:\n")
-        p.qr(ticket.url, size=PRINTER_QR_SIZE)
+        p.qr(ticket.url, size=6)
         p.text("\n")
 
         # Footer
