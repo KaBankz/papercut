@@ -154,10 +154,8 @@ def print_to_printer(ticket: Ticket) -> None:
     try:
         p = _get_printer()
 
-        # Company logo (if configured)
         if PRINTER_LOGO_PATH:
             try:
-                # Print logo (centered alignment handled by printer)
                 p.set(align="center")
                 p.image(PRINTER_LOGO_PATH)
                 p.text("\n")
@@ -168,13 +166,11 @@ def print_to_printer(ticket: Ticket) -> None:
                     "SVG files must be converted to PNG first."
                 )
 
-        # Company header - large, centered, bold
         if COMPANY_NAME:
             p.set(font="a", align="center", bold=True, width=2, height=2)
             p.text(COMPANY_NAME + "\n")
             p.set(font="a", align="center", bold=False, width=1, height=1)
 
-        # Company address (centered)
         if COMPANY_ADDRESS_LINE1:
             p.text(COMPANY_ADDRESS_LINE1 + "\n")
         if COMPANY_ADDRESS_LINE2:
@@ -182,13 +178,11 @@ def print_to_printer(ticket: Ticket) -> None:
         if COMPANY_ADDRESS_LINE3:
             p.text(COMPANY_ADDRESS_LINE3 + "\n")
 
-        # Contact info
         if COMPANY_PHONE:
             p.text(COMPANY_PHONE + "\n")
         if COMPANY_URL:
             p.text(COMPANY_URL + "\n")
 
-        # Timestamp
         p.set(align="center")
         p.text(ticket.created_at.strftime("\n" + "%b %d, %Y at %I:%M %p") + "\n\n")
 
@@ -207,36 +201,30 @@ def print_to_printer(ticket: Ticket) -> None:
 
         p.text(_format_receipt_line("Creator:", ticket.created_by))
 
-        # Labels (if any)
         if ticket.labels:
             labels_text = ", ".join(ticket.labels)
             p.text(_format_receipt_line("Labels:", labels_text))
 
-        # Title - bold, larger (automatically wraps)
         p.text("\n")
         p.set(bold=True, width=2, height=2)
-        p.text(ticket.title.upper() + "\n")
+        p.text(ticket.title + "\n")
         p.set(bold=False, width=1, height=1)
 
-        # Description (if present)
         if ticket.description:
             p.text("\n")
             p.set(align="left")
             p.text(ticket.description + "\n")
 
-        # QR code with ticket URL (centered)
         p.text("\n")
         p.set(align="center")
         p.text("Scan for details:\n")
         p.qr(ticket.url, size=6)
         p.text("\n")
 
-        # Footer
         if COMPANY_TAGLINE:
             p.set(align="center", bold=False)
             p.text(COMPANY_TAGLINE + "\n\n")
 
-        # Cut paper
         p.cut()
 
         logger.info(f"Successfully printed ticket {ticket.identifier}")
