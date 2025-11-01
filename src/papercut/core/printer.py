@@ -6,7 +6,7 @@ Prints tickets on physical receipt printers using python-escpos.
 import logging
 from escpos.printer import Usb
 from escpos.exceptions import USBNotFoundError, Error as EscposError
-
+import os
 from papercut.core.models import Ticket
 from config import (
     COMPANY_LOGO_PATH,
@@ -19,14 +19,15 @@ from config import (
     COMPANY_TAGLINE,
     PRINTER_USB_VENDOR_ID,
     PRINTER_USB_PRODUCT_ID,
-    PRINTER_CHAR_WIDTH,
 )
 
 logger = logging.getLogger(__name__)
 
 
 def _format_receipt_line(
-    label: str, value: str, width: int = PRINTER_CHAR_WIDTH
+    label: str,
+    value: str,
+    width: int = 48,  # 48 is standard for 80mm paper with Font A
 ) -> str:
     """
     Format a receipt line with label left-aligned and value right-aligned.
@@ -153,16 +154,19 @@ def print_to_printer(ticket: Ticket) -> None:
         p = _get_printer()
 
         if COMPANY_LOGO_PATH:
-            try:
-                p.set(align="center")
-                p.image(COMPANY_LOGO_PATH)
-                p.text("\n")
-            except Exception as e:
-                logger.warning(
-                    f"Failed to print logo '{COMPANY_LOGO_PATH}': {e}. "
-                    "Note: Only PNG, JPG, GIF, and BMP formats are supported. "
-                    "SVG files must be converted to PNG first."
-                )
+            if not os.path.exists(COMPANY_LOGO_PATH):
+                logger.warning(f"Logo file not found: {COMPANY_LOGO_PATH}")
+            else:
+                try:
+                    p.set(align="center")
+                    p.image(COMPANY_LOGO_PATH)
+                    p.text("\n")
+                except Exception as e:
+                    logger.warning(
+                        f"Failed to print logo '{COMPANY_LOGO_PATH}': {e}. "
+                        "Note: Only PNG, JPG, GIF, and BMP formats are supported. "
+                        "SVG files must be converted to PNG first."
+                    )
 
         if COMPANY_NAME:
             p.set(font="a", align="center", bold=True, width=2, height=2)
