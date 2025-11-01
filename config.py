@@ -26,3 +26,13 @@ COMPANY_TAGLINE = os.getenv("COMPANY_TAGLINE", "Made with ❤️ by KaBanks")
 RECEIPT_WIDTH = 48  # Total width of the receipt (excluding borders)
 RECEIPT_PADDING = 2  # Padding on both left and right sides
 RECEIPT_INNER_WIDTH = RECEIPT_WIDTH - (RECEIPT_PADDING * 2)  # Usable width for content
+
+# Printer Configuration (USB Only)
+# USB Printer Settings (default: Epson TM-T20III)
+# Note: Your specific TM-T20III reports as 0x0e28 (run ioreg to verify your device)
+PRINTER_USB_VENDOR_ID = os.getenv("PRINTER_USB_VENDOR_ID", "0x04b8")
+PRINTER_USB_PRODUCT_ID = os.getenv("PRINTER_USB_PRODUCT_ID", "0x0e28")
+
+# Printer Features
+PRINTER_LOGO_PATH = os.getenv("PRINTER_LOGO_PATH", "")  # Optional company logo image
+PRINTER_QR_SIZE = int(os.getenv("PRINTER_QR_SIZE", "6"))  # QR code size (1-16)
