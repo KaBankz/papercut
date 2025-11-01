@@ -9,6 +9,7 @@ from escpos.exceptions import USBNotFoundError, Error as EscposError
 
 from papercut.core.models import Ticket
 from config import (
+    COMPANY_LOGO_PATH,
     COMPANY_NAME,
     COMPANY_ADDRESS_LINE1,
     COMPANY_ADDRESS_LINE2,
@@ -18,17 +19,14 @@ from config import (
     COMPANY_TAGLINE,
     PRINTER_USB_VENDOR_ID,
     PRINTER_USB_PRODUCT_ID,
-    PRINTER_LOGO_PATH,
+    PRINTER_CHAR_WIDTH,
 )
 
 logger = logging.getLogger(__name__)
 
-# Receipt printer standard character width for 80mm paper with Font A
-RECEIPT_CHAR_WIDTH = 48
-
 
 def _format_receipt_line(
-    label: str, value: str, width: int = RECEIPT_CHAR_WIDTH
+    label: str, value: str, width: int = PRINTER_CHAR_WIDTH
 ) -> str:
     """
     Format a receipt line with label left-aligned and value right-aligned.
@@ -154,14 +152,14 @@ def print_to_printer(ticket: Ticket) -> None:
     try:
         p = _get_printer()
 
-        if PRINTER_LOGO_PATH:
+        if COMPANY_LOGO_PATH:
             try:
                 p.set(align="center")
-                p.image(PRINTER_LOGO_PATH)
+                p.image(COMPANY_LOGO_PATH)
                 p.text("\n")
             except Exception as e:
                 logger.warning(
-                    f"Failed to print logo '{PRINTER_LOGO_PATH}': {e}. "
+                    f"Failed to print logo '{COMPANY_LOGO_PATH}': {e}. "
                     "Note: Only PNG, JPG, GIF, and BMP formats are supported. "
                     "SVG files must be converted to PNG first."
                 )

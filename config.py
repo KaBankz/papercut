@@ -14,6 +14,7 @@ if not LINEAR_SIGNING_SECRET:
     raise ValueError("LINEAR_SIGNING_SECRET environment variable is not set")
 
 # Company Information
+COMPANY_LOGO_PATH = os.getenv("COMPANY_LOGO_PATH", "")
 COMPANY_NAME = os.getenv("COMPANY_NAME", "Your Company")
 COMPANY_ADDRESS_LINE1 = os.getenv("COMPANY_ADDRESS_LINE1", "123 Main St")
 COMPANY_ADDRESS_LINE2 = os.getenv("COMPANY_ADDRESS_LINE2", "City, State 12345")
@@ -29,9 +30,8 @@ RECEIPT_INNER_WIDTH = RECEIPT_WIDTH - (RECEIPT_PADDING * 2)  # Usable width for 
 
 # Printer Configuration (USB Only)
 # USB Printer Settings (default: Epson TM-T20III)
-# Note: Your specific TM-T20III reports as 0x0e28 (run ioreg to verify your device)
+# Note: run `ioreg` to verify your device
 PRINTER_USB_VENDOR_ID = os.getenv("PRINTER_USB_VENDOR_ID", "0x04b8")
 PRINTER_USB_PRODUCT_ID = os.getenv("PRINTER_USB_PRODUCT_ID", "0x0e28")
-
-# Printer Features
-PRINTER_LOGO_PATH = os.getenv("PRINTER_LOGO_PATH", "")  # Optional company logo image
+# 48 is standard for 80mm paper with Font A
+PRINTER_CHAR_WIDTH = int(os.getenv("PRINTER_CHAR_WIDTH", "48"))
