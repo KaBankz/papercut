@@ -208,7 +208,7 @@ def print_to_printer(ticket: Ticket) -> None:
         # Title (max 350 chars to prevent crazy long receipts)
         p.text("\n")
         p.set(bold=True, width=2, height=2)
-        title = ticket.title
+        title = ticket.title.strip()
         if len(title) > 350:
             title = title[:347] + "..."
         p.text(title + "\n")
@@ -218,7 +218,7 @@ def print_to_printer(ticket: Ticket) -> None:
         if ticket.description:
             p.text("\n")
             p.set(align="left")
-            description = ticket.description
+            description = ticket.description.strip()
             if len(description) > 350:
                 description = description[:347] + "..."
             p.text(description + "\n")

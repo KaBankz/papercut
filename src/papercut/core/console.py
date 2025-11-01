@@ -39,6 +39,48 @@ def _print_line(content: str, width: int = None) -> None:
     print("│" + content + "│")
 
 
+def _wrap_text(text: str, max_width: int) -> list[str]:
+    """
+    Wrap text to fit within a maximum width, breaking at word boundaries.
+
+    Args:
+        text: The text to wrap
+        max_width: Maximum width per line
+
+    Returns:
+        List of wrapped lines
+    """
+    if len(text) <= max_width:
+        return [text]
+
+    lines = []
+    words = text.split()
+    current_line = []
+    current_length = 0
+
+    for word in words:
+        word_len = len(word) + (1 if current_line else 0)  # +1 for space between words
+        if current_length + word_len <= max_width:
+            current_line.append(word)
+            current_length += word_len
+        else:
+            if current_line:
+                lines.append(" ".join(current_line))
+            # If single word is too long, force break it
+            if len(word) > max_width:
+                lines.append(word[:max_width])
+                current_line = []
+                current_length = 0
+            else:
+                current_line = [word]
+                current_length = len(word)
+
+    if current_line:
+        lines.append(" ".join(current_line))
+
+    return lines
+
+
 def _wrap_two_column(
     label: str, value: str, width: int = None, padding: int = None
 ) -> None:
@@ -100,7 +142,6 @@ def print_console_preview(ticket: Ticket) -> None:
         _print_line(
             " " * padding + COMPANY_NAME.center(inner_width) + " " * padding, width
         )
-        _print_line("", width)
 
     # Company address
     if COMPANY_ADDRESS_LINE1:
@@ -133,11 +174,12 @@ def print_console_preview(ticket: Ticket) -> None:
     _print_line("", width)
 
     # Timestamp
-    created_at = ticket.created_at.strftime("%b %d, %Y at %I:%M %p")
+    created_at = ticket.created_at.strftime("%b %d, %Y at %I:%M %p").center(inner_width)
     _print_line(" " * padding + created_at + " " * padding, width)
     _print_line("", width)
 
     # Details in two-column format
+    _wrap_two_column("ID", ticket.identifier, width)
     _wrap_two_column("Team", ticket.team, width)
     _wrap_two_column("Priority", ticket.priority, width)
     _wrap_two_column("Status", ticket.status, width)
@@ -149,30 +191,38 @@ def print_console_preview(ticket: Ticket) -> None:
         due = ticket.due_date.strftime("%b %d, %Y")
         _wrap_two_column("Due", due, width)
 
+    _wrap_two_column("Creator", ticket.created_by, width)
+
     if ticket.labels:
         label_names = ", ".join(ticket.labels)
         _wrap_two_column("Labels", label_names, width)
 
-    _wrap_two_column("Created by", ticket.created_by, width)
-    _wrap_two_column("ID", ticket.identifier, width)
     _print_line("", width)
 
-    # Separator
-    _print_line(" " * padding + "─" * inner_width + " " * padding, width)
+    # Ticket title (wrapped)
+    title = ticket.title.strip()
+    if len(title) > 350:
+        title = title[:347] + "..."
+    title_lines = _wrap_text(title, inner_width)
+    for line in title_lines:
+        _print_line(" " * padding + line + " " * padding, width)
     _print_line("", width)
 
-    # Ticket title
-    _print_line(" " * padding + ticket.title.upper() + " " * padding, width)
-    _print_line("", width)
-
-    # Ticket description
+    # Ticket description (wrapped)
     if ticket.description:
-        desc = ticket.description.replace("\n", " ").strip()
-        _print_line(" " * padding + desc + " " * padding, width)
+        desc = ticket.description.strip()
+        if len(desc) > 350:
+            desc = desc[:347] + "..."
+        desc_lines = _wrap_text(desc, inner_width)
+        for line in desc_lines:
+            _print_line(" " * padding + line + " " * padding, width)
         _print_line("", width)
 
-    # Separator
-    _print_line(" " * padding + "─" * inner_width + " " * padding, width)
+    _print_line("", width)
+    _print_line("Scan for details:".center(inner_width), width)
+    _print_line("", width)
+    _print_line("QR CODE HERE".center(inner_width), width)
+    _print_line("", width)
     _print_line("", width)
 
     # Footer tagline
