@@ -24,6 +24,75 @@ from config import (
 
 logger = logging.getLogger(__name__)
 
+# Receipt printer standard character width for 80mm paper with Font A
+RECEIPT_CHAR_WIDTH = 48
+
+
+def _format_receipt_line(
+    label: str, value: str, width: int = RECEIPT_CHAR_WIDTH
+) -> str:
+    """
+    Format a receipt line with label left-aligned and value right-aligned.
+
+    This creates the classic receipt format with two columns:
+    Label:              Value
+
+    If the value is too long, it wraps to subsequent lines, right-aligned.
+
+    Args:
+        label: The label text (e.g., "ID:", "Team:")
+        value: The value text
+        width: Total character width of the receipt line (default: 48)
+
+    Returns:
+        Formatted string with proper spacing, possibly multi-line
+    """
+    # Maximum width for the value column (roughly half the receipt)
+    max_value_width = width // 2
+
+    # If value fits on one line with the label
+    if len(value) <= max_value_width:
+        spaces_needed = width - len(label) - len(value)
+        if spaces_needed < 1:
+            spaces_needed = 1
+        return f"{label}{' ' * spaces_needed}{value}\n"
+
+    # Value is too long - need to wrap it, right-aligned
+    lines = []
+    words = value.split()
+    current_line = []
+    current_length = 0
+
+    for word in words:
+        word_len = len(word) + (1 if current_line else 0)  # +1 for space between words
+        if current_length + word_len <= max_value_width:
+            current_line.append(word)
+            current_length += word_len
+        else:
+            if current_line:
+                lines.append(" ".join(current_line))
+            current_line = [word]
+            current_length = len(word)
+
+    if current_line:
+        lines.append(" ".join(current_line))
+
+    # Format the output
+    result = []
+    for i, line in enumerate(lines):
+        if i == 0:
+            # First line includes the label
+            spaces_needed = width - len(label) - len(line)
+            if spaces_needed < 1:
+                spaces_needed = 1
+            result.append(f"{label}{' ' * spaces_needed}{line}\n")
+        else:
+            # Subsequent lines are right-aligned without label
+            spaces_needed = width - len(line)
+            result.append(f"{' ' * spaces_needed}{line}\n")
+
+    return "".join(result)
+
 
 def _get_printer():
     """
@@ -124,24 +193,25 @@ def print_to_printer(ticket: Ticket) -> None:
         p.set(align="center")
         p.text(ticket.created_at.strftime("\n" + "%b %d, %Y at %I:%M %p") + "\n\n")
 
-        # Ticket details (left-aligned)
+        # Ticket details (2-column layout: labels left, values right)
         p.set(align="left", bold=False, width=1, height=1)
-        p.text(f"ID:       {ticket.identifier}\n")
-        p.text(f"Team:     {ticket.team}\n")
-        p.text(f"Priority: {ticket.priority}\n")
-        p.text(f"Status:   {ticket.status}\n")
+        p.text(_format_receipt_line("ID:", ticket.identifier))
+        p.text(_format_receipt_line("Team:", ticket.team))
+        p.text(_format_receipt_line("Priority:", ticket.priority))
+        p.text(_format_receipt_line("Status:", ticket.status))
 
         if ticket.assignee:
-            p.text(f"Assignee: {ticket.assignee}\n")
+            p.text(_format_receipt_line("Assignee:", ticket.assignee))
 
         if ticket.due_date:
-            p.text(f"Due:      {ticket.due_date.strftime('%b %d, %Y')}\n")
+            p.text(_format_receipt_line("Due:", ticket.due_date.strftime("%b %d, %Y")))
 
-        p.text(f"Creator:  {ticket.created_by}\n")
+        p.text(_format_receipt_line("Creator:", ticket.created_by))
 
         # Labels (if any)
         if ticket.labels:
-            p.text(f"Labels:   {', '.join(ticket.labels)}\n")
+            labels_text = ", ".join(ticket.labels)
+            p.text(_format_receipt_line("Labels:", labels_text))
 
         # Title - bold, larger (automatically wraps)
         p.text("\n")
