@@ -6,14 +6,23 @@ services:
     ports:
       - 8000:8000
     environment:
-      - LINEAR_SIGNING_SECRET=
-      # - COMPANY_NAME=
-      # - COMPANY_ADDRESS_LINE1=
-      # - COMPANY_ADDRESS_LINE2=
-      # - COMPANY_ADDRESS_LINE3=
-      # - COMPANY_URL=
-      # - COMPANY_PHONE=
-      # - COMPANY_TAGLINE=
+      - LINEAR_SIGNING_SECRET=${LINEAR_SIGNING_SECRET}
+      - PRINTER_USB_VENDOR_ID=${PRINTER_USB_VENDOR_ID}
+      - PRINTER_USB_PRODUCT_ID=${PRINTER_USB_PRODUCT_ID}
+      - PRINTER_CHAR_WIDTH=${PRINTER_CHAR_WIDTH}
+      - COMPANY_LOGO_PATH=${COMPANY_LOGO_PATH}
+      - COMPANY_NAME=${COMPANY_NAME}
+      - COMPANY_ADDRESS_LINE1=${COMPANY_ADDRESS_LINE1}
+      - COMPANY_ADDRESS_LINE2=${COMPANY_ADDRESS_LINE2}
+      - COMPANY_ADDRESS_LINE3=${COMPANY_ADDRESS_LINE3}
+      - COMPANY_PHONE=${COMPANY_PHONE}
+      - COMPANY_URL=${COMPANY_URL}
+      - COMPANY_TAGLINE=${COMPANY_TAGLINE}
+    volumes:
+      # Grant access to USB devices for printer
+      # Find your printer with: lsusb
+      - /dev/bus/usb:/dev/bus/usb
+    privileged: false # Use specific device access instead of privileged mode
     restart: unless-stopped
 
   cloudflared:
