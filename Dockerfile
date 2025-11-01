@@ -3,7 +3,11 @@
 # ============================================================================
 FROM python:3.14-alpine AS builder
 
-COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+RUN pip install uv --no-cache
+
+# Install build dependencies for python-escpos USB support
+# libusb-dev: Required to build pyusb
+RUN apk add --no-cache libusb-dev
 
 WORKDIR /app
 
@@ -39,10 +43,15 @@ LABEL org.opencontainers.image.title="${TITLE}" \
       org.opencontainers.image.revision="${VCS_REF}" \
       org.opencontainers.image.licenses="${LICENSE}"
 
-# Install only runtime dependencies (if any are needed by your deps)
-# Most Python apps on Alpine need libgcc, libstdc++
-RUN apk add --no-cache libgcc libstdc++ && \
-    rm -rf /var/cache/apk/*
+# Install runtime dependencies for python-escpos USB printer support
+# - libusb: USB device access library
+# - libgcc, libstdc++: Standard C/C++ libraries for Python
+RUN apk add --no-cache \
+    libgcc \
+    libstdc++ \
+    libusb \
+    wget \
+    && rm -rf /var/cache/apk/*
 
 WORKDIR /app
 
@@ -59,8 +68,9 @@ RUN addgroup -g 1000 appuser && \
 # Switch to non-root user
 USER appuser
 
-# Add venv to PATH
+# Add venv to PATH and src to PYTHONPATH
 ENV PATH="/app/.venv/bin:$PATH" \
+    PYTHONPATH="/app/src" \
     PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1
 
