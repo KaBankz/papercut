@@ -62,9 +62,48 @@ ngrok http 8000
 5. Select: **Issues** → **created**
 6. Save
 
-## Printers
+## 🖨️ Printer Setup
 
-Tested on **EPSON TM-T88III**. Works with any standard receipt printer. (using python-escpos)
+### Supported Printers
+
+Tested on **Epson TM-T20III** (Monochrome Thermal POS Printer C31CH51001). Works with any ESC/POS compatible USB receipt printer (using python-escpos).
+
+### USB Printer Setup
+
+1. **Find your printer's USB IDs:**
+
+   ```bash
+   lsusb
+   ```
+
+   Look for your Epson printer (Vendor ID: `04b8`, Product ID varies by model)
+
+2. **Configure in `.env`:**
+
+   ```bash
+   PRINTER_USB_VENDOR_ID=0x04b8
+   PRINTER_USB_PRODUCT_ID=0x0202  # TM-T20III
+   ```
+
+3. **For Docker deployments:** USB devices are automatically mounted via compose.yaml
+
+4. **Linux permissions:** You may need to add your user to the `lp` group:
+
+   ```bash
+   sudo usermod -a -G lp $USER
+   ```
+
+### Common Epson USB Product IDs
+
+- TM-T20III: `0x0e28` or `0x0202` (varies by firmware/region)
+- TM-T88III: `0x0e28`
+- TM-T88V: `0x0202`
+- TM-T88VI: `0x0228`
+
+**Always verify your specific device:**
+
+- macOS: `ioreg -p IOUSB -l -w 0 | grep -i "TM-T20III" -B 10 -A 5`
+- Linux: `lsusb`
 
 ## Security
 
