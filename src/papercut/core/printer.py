@@ -205,15 +205,23 @@ def print_to_printer(ticket: Ticket) -> None:
             labels_text = ", ".join(ticket.labels)
             p.text(_format_receipt_line("Labels:", labels_text))
 
+        # Title (max 350 chars to prevent crazy long receipts)
         p.text("\n")
         p.set(bold=True, width=2, height=2)
-        p.text(ticket.title + "\n")
+        title = ticket.title
+        if len(title) > 350:
+            title = title[:347] + "..."
+        p.text(title + "\n")
         p.set(bold=False, width=1, height=1)
 
+        # Description (max 350 chars to prevent crazy long receipts)
         if ticket.description:
             p.text("\n")
             p.set(align="left")
-            p.text(ticket.description + "\n")
+            description = ticket.description
+            if len(description) > 350:
+                description = description[:347] + "..."
+            p.text(description + "\n")
 
         p.text("\n")
         p.set(align="center")
