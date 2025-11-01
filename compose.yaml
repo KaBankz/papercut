@@ -22,6 +22,7 @@ services:
       # Grant access to USB devices for printer
       # Find your printer with: lsusb
       - /dev/bus/usb:/dev/bus/usb
+      - ./assets:/app/assets
     privileged: false # Use specific device access instead of privileged mode
     restart: unless-stopped
 

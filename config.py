@@ -14,7 +14,7 @@ if not LINEAR_SIGNING_SECRET:
     raise ValueError("LINEAR_SIGNING_SECRET environment variable is not set")
 
 # Company Information
-COMPANY_LOGO_PATH = os.getenv("COMPANY_LOGO_PATH", "")
+COMPANY_LOGO_PATH = os.getenv("COMPANY_LOGO_PATH", "assets/logo.png")
 COMPANY_NAME = os.getenv("COMPANY_NAME", "Your Company")
 COMPANY_ADDRESS_LINE1 = os.getenv("COMPANY_ADDRESS_LINE1", "123 Main St")
 COMPANY_ADDRESS_LINE2 = os.getenv("COMPANY_ADDRESS_LINE2", "City, State 12345")
