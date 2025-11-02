@@ -5,15 +5,6 @@ FROM python:3.14-alpine AS builder
 
 RUN pip install uv --no-cache
 
-# Install build dependencies for python-escpos USB support and C extensions
-# gcc: C compiler for building extensions
-# musl-dev: C standard library headers (Alpine-specific)
-# libusb-dev: Required to build pyusb
-RUN apk add --no-cache \
-    gcc \
-    musl-dev \
-    libusb-dev
-
 WORKDIR /app
 
 COPY pyproject.toml uv.lock ./
@@ -47,8 +38,6 @@ LABEL org.opencontainers.image.title="${TITLE}" \
       org.opencontainers.image.source="${VCS_URL}" \
       org.opencontainers.image.revision="${VCS_REF}" \
       org.opencontainers.image.licenses="${LICENSE}"
-
-RUN apk add --no-cache libusb
 
 WORKDIR /app
 
