@@ -108,6 +108,74 @@ def _get_printer():
         raise
 
 
+def _print_header(p) -> None:
+    """
+    Print receipt header (logo and company info).
+
+    Args:
+        p: ESC/POS printer instance
+    """
+    # Logo
+    if config.header.logo_path is not None:
+        try:
+            p.set(align="center")
+            p.image(config.header.logo_path)
+            p.text("\n")
+        except Exception as e:
+            logger.warning(
+                f"Failed to print logo '{config.header.logo_path}': {e}. "
+                "Note: Only PNG, JPG, GIF, and BMP formats are supported. "
+                "SVG files must be converted to PNG first."
+            )
+
+    # Company name (large, bold)
+    if config.header.company_name is not None:
+        p.set(font="a", align="center", bold=True, width=2, height=2)
+        p.text(config.header.company_name + "\n")
+        p.set(font="a", align="center", bold=False, width=1, height=1)
+
+    # Address lines
+    if config.header.address_line1 is not None:
+        p.text(config.header.address_line1 + "\n")
+    if config.header.address_line2 is not None:
+        p.text(config.header.address_line2 + "\n")
+
+    # Contact info
+    if config.header.phone is not None:
+        p.text(config.header.phone + "\n")
+    if config.header.url is not None:
+        p.text(config.header.url + "\n")
+
+
+def _print_footer(p, url: str) -> None:
+    """
+    Print receipt footer (QR code and footer text).
+
+    Args:
+        p: ESC/POS printer instance
+        url: URL to encode in QR code
+    """
+    if config.footer.disabled:
+        return
+
+    p.text("\n")
+    p.set(align="center")
+
+    # QR code title
+    if config.footer.qr_code_title is not None:
+        p.text(config.footer.qr_code_title + "\n")
+
+    # QR code
+    if not config.footer.qr_code_disabled:
+        p.qr(url, size=config.footer.qr_code_size)
+        p.text("\n")
+
+    # Footer text
+    if config.footer.footer_text is not None:
+        p.set(align="center", bold=False)
+        p.text(config.footer.footer_text + "\n\n")
+
+
 def print_to_printer(ticket: Ticket) -> None:
     """
     Print ticket on a receipt printer.
@@ -132,33 +200,10 @@ def print_to_printer(ticket: Ticket) -> None:
     try:
         p = _get_printer()
 
-        if config.header.logo_path is not None:
-            try:
-                p.set(align="center")
-                p.image(config.header.logo_path)
-                p.text("\n")
-            except Exception as e:
-                logger.warning(
-                    f"Failed to print logo '{config.header.logo_path}': {e}. "
-                    "Note: Only PNG, JPG, GIF, and BMP formats are supported. "
-                    "SVG files must be converted to PNG first."
-                )
+        # Print header
+        _print_header(p)
 
-        if config.header.company_name is not None:
-            p.set(font="a", align="center", bold=True, width=2, height=2)
-            p.text(config.header.company_name + "\n")
-            p.set(font="a", align="center", bold=False, width=1, height=1)
-
-        if config.header.address_line1 is not None:
-            p.text(config.header.address_line1 + "\n")
-        if config.header.address_line2 is not None:
-            p.text(config.header.address_line2 + "\n")
-
-        if config.header.phone is not None:
-            p.text(config.header.phone + "\n")
-        if config.header.url is not None:
-            p.text(config.header.url + "\n")
-
+        # Timestamp
         p.set(align="center")
         p.text(ticket.created_at.strftime("\n" + "%b %d, %Y at %I:%M %p") + "\n\n")
 
@@ -201,21 +246,8 @@ def print_to_printer(ticket: Ticket) -> None:
                 description = description[: max_desc_len - 3] + "..."
             p.text(description + "\n")
 
-        # Footer section
-        if not config.footer.disabled:
-            p.text("\n")
-            p.set(align="center")
-
-            if config.footer.qr_code_title is not None:
-                p.text(config.footer.qr_code_title + "\n")
-
-            if not config.footer.qr_code_disabled:
-                p.qr(ticket.url, size=config.footer.qr_code_size)
-                p.text("\n")
-
-            if config.footer.footer_text is not None:
-                p.set(align="center", bold=False)
-                p.text(config.footer.footer_text + "\n\n")
+        # Print footer
+        _print_footer(p, ticket.url)
 
         p.cut()
 
