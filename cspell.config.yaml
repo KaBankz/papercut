@@ -11,6 +11,8 @@ words:
   - libstdc
   - lsusb
   - PYTHONUNBUFFERED
+  - scannability
+  - taplo
   - tolower
   - toupper
   - unstarted

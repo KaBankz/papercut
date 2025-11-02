@@ -1,0 +1,251 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://raw.githubusercontent.com/kabankz/papercut/master/papercut-schema.json",
+  "title": "Papercut Configuration",
+  "description": "Configuration schema for Papercut - Print your tickets on a real receipt printer",
+  "type": "object",
+  "properties": {
+    "printer": {
+      "type": "object",
+      "description": "USB printer configuration",
+      "properties": {
+        "usb_vendor_id": {
+          "type": "string",
+          "pattern": "^0x[0-9a-fA-F]{4}$",
+          "default": "0x04b8",
+          "description": "USB vendor ID in hex format (e.g., 0x04b8 for Epson)",
+          "x-taplo": {
+            "docs": {
+              "main": "USB Vendor ID in hexadecimal format. Default is `0x04b8` for Epson printers.\n\nRun `lsusb` (Linux) or `ioreg` (macOS) to find your printer's vendor ID.",
+              "defaultValue": "Epson TM-T20III default vendor ID"
+            },
+            "links": {
+              "key": "https://github.com/kabankz/papercut#printer-setup"
+            }
+          }
+        },
+        "usb_product_id": {
+          "type": "string",
+          "pattern": "^0x[0-9a-fA-F]{4}$",
+          "default": "0x0e28",
+          "description": "USB product ID in hex format (varies by printer model)",
+          "x-taplo": {
+            "docs": {
+              "main": "USB Product ID in hexadecimal format. Varies by printer model.\n\n**Common Epson IDs:**\n- TM-T20III: `0x0e28` or `0x0202`\n- TM-T88III: `0x0e28`\n- TM-T88V: `0x0202`",
+              "defaultValue": "Epson TM-T20III default product ID"
+            }
+          }
+        }
+      },
+      "required": ["usb_vendor_id", "usb_product_id"],
+      "additionalProperties": false
+    },
+    "header": {
+      "type": "object",
+      "description": "Receipt header section (company information)",
+      "properties": {
+        "logo_path": {
+          "type": "string",
+          "default": "logo.png",
+          "description": "Path to company logo (relative to /config or absolute)",
+          "x-taplo": {
+            "docs": {
+              "main": "Path to your company logo image.\n\n- Relative paths check `/config/` directory first (for Docker mounts)\n- Supports PNG, JPG, GIF, BMP formats\n- Set to empty string `\"\"` to hide logo",
+              "defaultValue": "Default logo in assets directory"
+            }
+          }
+        },
+        "company_name": {
+          "type": "string",
+          "default": "Your Company",
+          "description": "Company name displayed at the top of receipts",
+          "x-taplo": {
+            "docs": {
+              "main": "Your company name, displayed prominently at the top of the receipt.\n\nSet to empty string `\"\"` to hide this field."
+            }
+          }
+        },
+        "address_line1": {
+          "type": "string",
+          "default": "123 Main St",
+          "description": "First line of company address",
+          "x-taplo": {
+            "docs": {
+              "main": "First line of your company address.\n\nSet to empty string `\"\"` to hide this field."
+            }
+          }
+        },
+        "address_line2": {
+          "type": "string",
+          "default": "City, State 12345",
+          "description": "Second line of company address",
+          "x-taplo": {
+            "docs": {
+              "main": "Second line of your company address (city, state, ZIP).\n\nSet to empty string `\"\"` to hide this field."
+            }
+          }
+        },
+        "phone": {
+          "type": "string",
+          "default": "+ 1 123 456 7890",
+          "description": "Company phone number",
+          "x-taplo": {
+            "docs": {
+              "main": "Company phone number.\n\nSet to empty string `\"\"` to hide this field."
+            }
+          }
+        },
+        "url": {
+          "type": "string",
+          "default": "https://krabby.dev",
+          "description": "Company website URL",
+          "x-taplo": {
+            "docs": {
+              "main": "Your company website URL.\n\nSet to empty string `\"\"` to hide this field."
+            }
+          }
+        }
+      },
+      "additionalProperties": false,
+      "x-taplo": {
+        "initKeys": ["company_name", "logo_path"]
+      }
+    },
+    "footer": {
+      "type": "object",
+      "description": "Receipt footer section (QR code and footer text)",
+      "properties": {
+        "disabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "Disable the entire footer section",
+          "x-taplo": {
+            "docs": {
+              "main": "Set to `true` to completely hide the footer section (QR code and footer text)."
+            }
+          }
+        },
+        "qr_code_disabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "Disable only the QR code (keeps footer text)",
+          "x-taplo": {
+            "docs": {
+              "main": "Set to `true` to hide just the QR code while keeping footer text visible."
+            }
+          }
+        },
+        "qr_code_size": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 8,
+          "default": 6,
+          "description": "QR code size for ESC/POS printers (1-8)",
+          "x-taplo": {
+            "docs": {
+              "main": "QR code size for ESC/POS printers.\n\n**Valid range:** 1 (smallest) to 8 (largest)\n**Recommended:** 6 for good balance of size and scannability"
+            }
+          }
+        },
+        "qr_code_title": {
+          "type": "string",
+          "default": "Scan for details:",
+          "description": "Text displayed above the QR code",
+          "x-taplo": {
+            "docs": {
+              "main": "Text displayed above the QR code.\n\nSet to empty string `\"\"` to hide this text."
+            }
+          }
+        },
+        "footer_text": {
+          "type": "string",
+          "default": "Made with ❤️ by KaBanks",
+          "description": "Text displayed at the bottom of the receipt",
+          "x-taplo": {
+            "docs": {
+              "main": "Footer text displayed at the very bottom of receipts.\n\nSet to empty string `\"\"` to hide this text."
+            }
+          }
+        }
+      },
+      "required": ["disabled", "qr_code_disabled", "qr_code_size"],
+      "additionalProperties": false,
+      "x-taplo": {
+        "initKeys": ["disabled", "footer_text"]
+      }
+    },
+    "providers": {
+      "type": "object",
+      "description": "Provider integrations configuration",
+      "properties": {
+        "linear": {
+          "type": "object",
+          "description": "Linear webhook integration",
+          "properties": {
+            "disabled": {
+              "type": "boolean",
+              "default": false,
+              "description": "Disable Linear webhook integration",
+              "x-taplo": {
+                "docs": {
+                  "main": "Set to `true` to disable Linear webhook processing.\n\nWhen disabled, Linear webhooks will not be processed and the signing secret is not required."
+                }
+              }
+            },
+            "signing_secret": {
+              "type": "string",
+              "default": "",
+              "description": "Linear webhook signing secret (required if not disabled)",
+              "x-taplo": {
+                "docs": {
+                  "main": "Linear webhook signing secret for HMAC-SHA256 verification.\n\n**Required** if Linear is not disabled.\n\n**How to get it:**\n1. Go to Linear → Settings → API → Webhooks\n2. Create or edit a webhook\n3. Copy the signing secret",
+                  "defaultValue": "Empty - must be set if Linear is enabled"
+                },
+                "links": {
+                  "key": "https://linear.app/developers/webhooks#create-webhook-using-settings"
+                }
+              }
+            },
+            "max_title_length": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 350,
+              "description": "Maximum characters for issue title before truncation",
+              "x-taplo": {
+                "docs": {
+                  "main": "Maximum number of characters for issue titles before truncation.\n\nLonger titles will be truncated with `...` appended."
+                }
+              }
+            },
+            "max_description_length": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 350,
+              "description": "Maximum characters for issue description before truncation",
+              "x-taplo": {
+                "docs": {
+                  "main": "Maximum number of characters for issue descriptions before truncation.\n\nLonger descriptions will be truncated with `...` appended."
+                }
+              }
+            }
+          },
+          "required": [
+            "disabled",
+            "max_title_length",
+            "max_description_length"
+          ],
+          "additionalProperties": false,
+          "x-taplo": {
+            "initKeys": ["disabled", "signing_secret"]
+          }
+        }
+      },
+      "additionalProperties": false,
+      "x-taplo": {
+        "initKeys": ["linear"]
+      }
+    }
+  },
+  "required": ["printer", "header", "footer", "providers"],
+  "additionalProperties": false
+}
