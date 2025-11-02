@@ -18,7 +18,6 @@ COMPANY_LOGO_PATH = os.getenv("COMPANY_LOGO_PATH") or "assets/logo.png"
 COMPANY_NAME = os.getenv("COMPANY_NAME", "Your Company")
 COMPANY_ADDRESS_LINE1 = os.getenv("COMPANY_ADDRESS_LINE1", "123 Main St")
 COMPANY_ADDRESS_LINE2 = os.getenv("COMPANY_ADDRESS_LINE2", "City, State 12345")
-COMPANY_ADDRESS_LINE3 = os.getenv("COMPANY_ADDRESS_LINE3", "")  # Optional third line
 COMPANY_URL = os.getenv("COMPANY_URL", "https://krabby.dev")
 COMPANY_PHONE = os.getenv("COMPANY_PHONE", "+ 1 123 456 7890")
 COMPANY_TAGLINE = os.getenv("COMPANY_TAGLINE", "Made with ❤️ by KaBanks")

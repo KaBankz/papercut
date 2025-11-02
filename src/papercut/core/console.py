@@ -8,7 +8,6 @@ from config import (
     COMPANY_NAME,
     COMPANY_ADDRESS_LINE1,
     COMPANY_ADDRESS_LINE2,
-    COMPANY_ADDRESS_LINE3,
     COMPANY_URL,
     COMPANY_PHONE,
     COMPANY_TAGLINE,
@@ -152,11 +151,6 @@ def print_console_preview(ticket: Ticket) -> None:
     if COMPANY_ADDRESS_LINE2:
         _print_line(
             " " * padding + COMPANY_ADDRESS_LINE2.center(inner_width) + " " * padding,
-            width,
-        )
-    if COMPANY_ADDRESS_LINE3:
-        _print_line(
-            " " * padding + COMPANY_ADDRESS_LINE3.center(inner_width) + " " * padding,
             width,
         )
 

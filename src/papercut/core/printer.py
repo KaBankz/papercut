@@ -13,7 +13,6 @@ from config import (
     COMPANY_NAME,
     COMPANY_ADDRESS_LINE1,
     COMPANY_ADDRESS_LINE2,
-    COMPANY_ADDRESS_LINE3,
     COMPANY_URL,
     COMPANY_PHONE,
     COMPANY_TAGLINE,
@@ -177,8 +176,6 @@ def print_to_printer(ticket: Ticket) -> None:
             p.text(COMPANY_ADDRESS_LINE1 + "\n")
         if COMPANY_ADDRESS_LINE2:
             p.text(COMPANY_ADDRESS_LINE2 + "\n")
-        if COMPANY_ADDRESS_LINE3:
-            p.text(COMPANY_ADDRESS_LINE3 + "\n")
 
         if COMPANY_PHONE:
             p.text(COMPANY_PHONE + "\n")
