@@ -1,7 +1,7 @@
 # ============================================================================
 # Stage 1: Builder - Install dependencies
 # ============================================================================
-FROM python:3.14-alpine AS builder
+FROM python:3.14-slim AS builder
 
 RUN pip install uv --no-cache
 
@@ -12,9 +12,9 @@ COPY pyproject.toml uv.lock ./
 RUN uv sync --frozen --no-dev --no-install-project --no-cache
 
 # ============================================================================
-# Stage 2: Runtime - Ultra-minimal production image
+# Stage 2: Runtime - Production image with USB support
 # ============================================================================
-FROM python:3.14-alpine
+FROM python:3.14-slim
 
 # Build arguments for dynamic labels set by Makefile
 ARG TITLE
@@ -40,7 +40,11 @@ LABEL org.opencontainers.image.title="${TITLE}" \
       org.opencontainers.image.licenses="${LICENSE}"
 
 # Install USB libraries required for python-escpos
-RUN apk add --no-cache libusb
+RUN apt update && \
+    apt install -y --no-install-recommends \
+        libusb-1.0-0 \
+        wget && \
+    rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
@@ -48,14 +52,6 @@ COPY --from=builder /app/.venv /app/.venv
 
 COPY src/ ./src/
 COPY config.py main.py ./
-
-# Create non-root user for security
-RUN addgroup -g 1000 appuser && \
-    adduser -D -u 1000 -G appuser appuser && \
-    chown -R appuser:appuser /app
-
-# Switch to non-root user
-USER appuser
 
 # Add venv to PATH and src to PYTHONPATH
 ENV PATH="/app/.venv/bin:$PATH" \

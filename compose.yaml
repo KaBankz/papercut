@@ -19,6 +19,8 @@ services:
     volumes:
       - /dev/bus/usb:/dev/bus/usb:ro
       - ./assets:/app/assets:ro
+    # Grant full access to USB devices (required for printer communication)
+    privileged: true
     restart: unless-stopped
 
   cloudflared:
