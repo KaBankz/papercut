@@ -4,7 +4,7 @@ version = "0.1.0"
 description = "Print your tickets on a real receipt printer"
 readme = "README.md"
 authors = [{ name = "KaBanks", email = "hi@krabby.dev" }]
-license = "MIT"
+license = "AGPL-3.0-or-later"
 requires-python = ">=3.14"
 dependencies = [
   "fastapi>=0.120.4",
