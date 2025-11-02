@@ -45,20 +45,10 @@ class FooterConfig:
 
 
 @dataclass
-class LinearProviderConfig:
-    """Linear provider configuration."""
-
-    disabled: bool
-    signing_secret: Optional[str]
-    max_title_length: int
-    max_description_length: int
-
-
-@dataclass
 class ProvidersConfig:
-    """Providers configuration."""
+    """Providers configuration - dynamically populated by provider modules."""
 
-    linear: LinearProviderConfig
+    linear: Optional[object] = None  # Will be LinearProviderConfig from provider module
 
 
 @dataclass
@@ -211,17 +201,24 @@ def load_config() -> Config:
         footer_text=_normalize_optional_string(footer_data.get("footer_text")),
     )
 
-    # Parse providers.linear
-    providers_data = toml_data.get("providers", {})
-    linear_data = providers_data.get("linear", {})
-    linear = LinearProviderConfig(
-        disabled=linear_data["disabled"],
-        signing_secret=_normalize_optional_string(linear_data.get("signing_secret")),
-        max_title_length=linear_data["max_title_length"],
-        max_description_length=linear_data["max_description_length"],
-    )
+    # Load provider configs dynamically from their modules
+    providers = ProvidersConfig()
 
-    providers = ProvidersConfig(linear=linear)
+    # Linear provider (if available)
+    try:
+        from papercut.platforms.linear import (
+            load_config_from_toml as load_linear_config,
+        )
+
+        providers.linear = load_linear_config(toml_data)
+    except ImportError:
+        # Linear provider not installed/available
+        pass
+    except ValueError as e:
+        # Linear config validation failed
+        raise ValueError(
+            f"Linear provider config error (from {config_file_path}):\n{e}"
+        ) from e
 
     # Create config object
     config = Config(
@@ -230,17 +227,6 @@ def load_config() -> Config:
         footer=footer,
         providers=providers,
     )
-
-    # Validation: Linear signing secret required if not disabled
-    if not config.providers.linear.disabled:
-        if not config.providers.linear.signing_secret:
-            raise ValueError(
-                f"Linear signing_secret is required when Linear provider is enabled.\n"
-                f"Config file: {config_file_path}\n\n"
-                f"To fix this, either:\n"
-                f"1. Set signing_secret in [providers.linear] section\n"
-                f"2. Disable Linear: [providers.linear] disabled = true"
-            )
 
     return config
 
