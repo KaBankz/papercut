@@ -149,6 +149,7 @@ def print_to_printer(ticket: Ticket) -> None:
         USBNotFoundError: If USB printer not found
         EscposError: For other printer errors
     """
+    p = None
     try:
         p = _get_printer()
 
@@ -247,3 +248,11 @@ def print_to_printer(ticket: Ticket) -> None:
     except Exception as e:
         logger.error(f"Unexpected error printing ticket {ticket.identifier}: {e}")
         raise
+    finally:
+        # Always close the printer connection to release the USB device
+        if p is not None:
+            try:
+                p.close()
+                logger.debug("Printer connection closed successfully")
+            except Exception as e:
+                logger.warning(f"Error closing printer connection: {e}")
