@@ -6,19 +6,8 @@ Prints tickets on physical receipt printers using python-escpos.
 import logging
 from escpos.printer import Usb
 from escpos.exceptions import USBNotFoundError, Error as EscposError
-import os
 from papercut.core.models import Ticket
-from config import (
-    COMPANY_LOGO_PATH,
-    COMPANY_NAME,
-    COMPANY_ADDRESS_LINE1,
-    COMPANY_ADDRESS_LINE2,
-    COMPANY_URL,
-    COMPANY_PHONE,
-    COMPANY_TAGLINE,
-    PRINTER_USB_VENDOR_ID,
-    PRINTER_USB_PRODUCT_ID,
-)
+from config import config
 
 logger = logging.getLogger(__name__)
 
@@ -103,21 +92,11 @@ def _get_printer():
         EscposError: For other printer connection errors
     """
     try:
-        # Convert hex string to int
-        vendor_id = (
-            int(PRINTER_USB_VENDOR_ID, 16)
-            if isinstance(PRINTER_USB_VENDOR_ID, str)
-            else PRINTER_USB_VENDOR_ID
-        )
-        product_id = (
-            int(PRINTER_USB_PRODUCT_ID, 16)
-            if isinstance(PRINTER_USB_PRODUCT_ID, str)
-            else PRINTER_USB_PRODUCT_ID
-        )
         logger.info(
-            f"Connecting to USB printer: vendor={hex(vendor_id)}, product={hex(product_id)}"
+            f"Connecting to USB printer: vendor={hex(config.printer.usb_vendor_id)}, "
+            f"product={hex(config.printer.usb_product_id)}"
         )
-        return Usb(vendor_id, product_id)
+        return Usb(config.printer.usb_vendor_id, config.printer.usb_product_id)
 
     except USBNotFoundError as e:
         logger.error(
@@ -153,35 +132,32 @@ def print_to_printer(ticket: Ticket) -> None:
     try:
         p = _get_printer()
 
-        if COMPANY_LOGO_PATH:
-            if not os.path.exists(COMPANY_LOGO_PATH):
-                logger.warning(f"Logo file not found: {COMPANY_LOGO_PATH}")
-            else:
-                try:
-                    p.set(align="center")
-                    p.image(COMPANY_LOGO_PATH)
-                    p.text("\n")
-                except Exception as e:
-                    logger.warning(
-                        f"Failed to print logo '{COMPANY_LOGO_PATH}': {e}. "
-                        "Note: Only PNG, JPG, GIF, and BMP formats are supported. "
-                        "SVG files must be converted to PNG first."
-                    )
+        if config.header.logo_path is not None:
+            try:
+                p.set(align="center")
+                p.image(config.header.logo_path)
+                p.text("\n")
+            except Exception as e:
+                logger.warning(
+                    f"Failed to print logo '{config.header.logo_path}': {e}. "
+                    "Note: Only PNG, JPG, GIF, and BMP formats are supported. "
+                    "SVG files must be converted to PNG first."
+                )
 
-        if COMPANY_NAME:
+        if config.header.company_name is not None:
             p.set(font="a", align="center", bold=True, width=2, height=2)
-            p.text(COMPANY_NAME + "\n")
+            p.text(config.header.company_name + "\n")
             p.set(font="a", align="center", bold=False, width=1, height=1)
 
-        if COMPANY_ADDRESS_LINE1:
-            p.text(COMPANY_ADDRESS_LINE1 + "\n")
-        if COMPANY_ADDRESS_LINE2:
-            p.text(COMPANY_ADDRESS_LINE2 + "\n")
+        if config.header.address_line1 is not None:
+            p.text(config.header.address_line1 + "\n")
+        if config.header.address_line2 is not None:
+            p.text(config.header.address_line2 + "\n")
 
-        if COMPANY_PHONE:
-            p.text(COMPANY_PHONE + "\n")
-        if COMPANY_URL:
-            p.text(COMPANY_URL + "\n")
+        if config.header.phone is not None:
+            p.text(config.header.phone + "\n")
+        if config.header.url is not None:
+            p.text(config.header.url + "\n")
 
         p.set(align="center")
         p.text(ticket.created_at.strftime("\n" + "%b %d, %Y at %I:%M %p") + "\n\n")
@@ -205,33 +181,41 @@ def print_to_printer(ticket: Ticket) -> None:
             labels_text = ", ".join(ticket.labels)
             p.text(_format_receipt_line("Labels:", labels_text))
 
-        # Title (max 350 chars to prevent crazy long receipts)
+        # Title
         p.text("\n")
         p.set(bold=True, width=2, height=2)
         title = ticket.title.strip()
-        if len(title) > 350:
-            title = title[:347] + "..."
+        max_title_len = config.providers.linear.max_title_length
+        if len(title) > max_title_len:
+            title = title[: max_title_len - 3] + "..."
         p.text(title + "\n")
         p.set(bold=False, width=1, height=1)
 
-        # Description (max 350 chars to prevent crazy long receipts)
+        # Description
         if ticket.description:
             p.text("\n")
             p.set(align="left")
             description = ticket.description.strip()
-            if len(description) > 350:
-                description = description[:347] + "..."
+            max_desc_len = config.providers.linear.max_description_length
+            if len(description) > max_desc_len:
+                description = description[: max_desc_len - 3] + "..."
             p.text(description + "\n")
 
-        p.text("\n")
-        p.set(align="center")
-        p.text("Scan for details:\n")
-        p.qr(ticket.url, size=6)
-        p.text("\n")
+        # Footer section
+        if not config.footer.disabled:
+            p.text("\n")
+            p.set(align="center")
 
-        if COMPANY_TAGLINE:
-            p.set(align="center", bold=False)
-            p.text(COMPANY_TAGLINE + "\n\n")
+            if config.footer.qr_code_title is not None:
+                p.text(config.footer.qr_code_title + "\n")
+
+            if not config.footer.qr_code_disabled:
+                p.qr(ticket.url, size=config.footer.qr_code_size)
+                p.text("\n")
+
+            if config.footer.footer_text is not None:
+                p.set(align="center", bold=False)
+                p.text(config.footer.footer_text + "\n\n")
 
         p.cut()
 

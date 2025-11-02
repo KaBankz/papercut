@@ -10,14 +10,36 @@ Print your tickets on a real receipt printer.
 uv sync
 ```
 
-### 2. Set Up Environment Variables
+### 2. Configure Papercut
 
-Create a `.env` file based on the `.env.example` in the project root.
+Copy the default configuration file and customize it:
+
+```bash
+cp papercut.toml ./config/papercut.toml
+```
+
+Edit `./config/papercut.toml` to set your Linear signing secret and customize the receipt:
+
+```toml
+[providers.linear]
+signing_secret = "your_linear_signing_secret_here"  # Get from Linear webhook settings
+
+[header]
+company_name = "Your Company"
+# Set to empty string "" to hide any field
+address_line1 = ""  # This will hide address line 1
+
+[footer]
+disabled = false  # Set to true to hide entire footer
+footer_text = "Made with ❤️ by Your Company"
+```
 
 > [!NOTE]
-> Section 5 explains how to get your webhook URL and Linear signing secret.
-
-All `COMPANY_` prefixed variables are optional, omitting them will fallback to default values, and passing an empty value will omit the line from the receipt.
+> Section 5 explains how to get your Linear signing secret.
+>
+> **Hiding fields:** Set any header/footer field to empty string `""` to hide it from receipts.
+>
+> **Provider control:** Set `[providers.linear] disabled = true` to disable Linear webhooks.
 
 ### 3. Run the Server
 
@@ -39,11 +61,22 @@ Server runs on `http://localhost:8000`
 - Health check: `GET http://localhost:8000/`
 - API docs: `http://localhost:8000/docs`
 
-**Docker (Optional):**
+**Docker:**
+
+First, set up your config:
+
+```bash
+cp papercut.toml ./config/papercut.toml
+# Edit ./config/papercut.toml with your settings
+```
+
+Then start the services:
 
 ```bash
 make compose-up
 ```
+
+The `./config` directory is mounted to `/config` in the container.
 
 ### 4. Expose to Internet
 
@@ -58,7 +91,7 @@ ngrok http 8000
 1. Go to Linear → Settings → API → Webhooks
 2. Click "New Webhook"
 3. Set URL to `https://your-domain.com/webhooks/linear` (or ngrok URL + `/webhooks/linear`)
-4. Copy the signing secret to your `.env` file
+4. Copy the signing secret to `./config/papercut.toml` under `[providers.linear]` section
 5. Select: **Issues** → **created**
 6. Save
 
@@ -78,14 +111,15 @@ Tested on **Epson TM-T20III** (Monochrome Thermal POS Printer C31CH51001). Works
 
    Look for your Epson printer (Vendor ID: `04b8`, Product ID varies by model)
 
-2. **Configure in `.env`:**
+2. **Configure in `./config/papercut.toml`:**
 
-   ```bash
-   PRINTER_USB_VENDOR_ID=0x04b8
-   PRINTER_USB_PRODUCT_ID=0x0202  # TM-T20III
+   ```toml
+   [printer]
+   usb_vendor_id = "0x04b8"
+   usb_product_id = "0x0202"  # TM-T20III
    ```
 
-3. **For Docker deployments:** USB devices are automatically mounted via compose.yaml
+3. **For Docker deployments:** USB devices are automatically mounted via `compose.yaml`
 
 4. **Linux permissions:** You may need to add your user to the `lp` group:
 

@@ -12,7 +12,8 @@ wheels/
 # Environment variables
 .env
 
-assets/
+# User config
+config/
 
 # Generated files (created on-demand by Makefile)
 .dockerignore

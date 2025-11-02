@@ -135,7 +135,6 @@ version = "0.1.0"
 source = { editable = "." }
 dependencies = [
     { name = "fastapi" },
-    { name = "python-dotenv" },
     { name = "python-escpos", extra = ["usb"] },
     { name = "uvicorn", extra = ["standard"] },
 ]
@@ -143,7 +142,6 @@ dependencies = [
 [package.metadata]
 requires-dist = [
     { name = "fastapi", specifier = ">=0.120.4" },
-    { name = "python-dotenv", specifier = ">=1.2.1" },
     { name = "python-escpos", extras = ["usb"], specifier = ">=3.1" },
     { name = "uvicorn", extras = ["standard"], specifier = ">=0.38.0" },
 ]

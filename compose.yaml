@@ -2,22 +2,11 @@ name: papercut
 
 services:
   papercut:
-    image: papercut:latest
-    environment:
-      - LINEAR_SIGNING_SECRET=${LINEAR_SIGNING_SECRET}
-      - PRINTER_USB_VENDOR_ID=${PRINTER_USB_VENDOR_ID}
-      - PRINTER_USB_PRODUCT_ID=${PRINTER_USB_PRODUCT_ID}
-      - PRINTER_CHAR_WIDTH=${PRINTER_CHAR_WIDTH}
-      - COMPANY_LOGO_PATH=${COMPANY_LOGO_PATH}
-      - COMPANY_NAME=${COMPANY_NAME}
-      - COMPANY_ADDRESS_LINE1=${COMPANY_ADDRESS_LINE1}
-      - COMPANY_ADDRESS_LINE2=${COMPANY_ADDRESS_LINE2}
-      - COMPANY_PHONE=${COMPANY_PHONE}
-      - COMPANY_URL=${COMPANY_URL}
-      - COMPANY_TAGLINE=${COMPANY_TAGLINE}
+    build: .
+    image: ghcr.io/kabankz/papercut:latest
     volumes:
       - /dev/bus/usb:/dev/bus/usb:ro
-      - ./assets:/app/assets:ro
+      - ./config:/config:ro
     # Grant full access to USB devices (required for printer communication)
     privileged: true
     restart: unless-stopped

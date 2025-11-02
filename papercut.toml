@@ -1,0 +1,31 @@
+# Papercut Default Configuration
+# Copy this file to ./config/papercut.toml to customize
+
+[printer]
+# USB printer vendor and product IDs (hex format)
+# Default values are for Epson TM-T20III
+# Run `lsusb` (Linux) or `ioreg` (macOS) to find your printer's IDs
+usb_vendor_id = "0x04b8"
+usb_product_id = "0x0e28"
+
+[header]
+# Set any field to empty string "" to hide it from receipts
+logo_path = "logo.png"
+company_name = "Your Company"
+address_line1 = "123 Main St"
+address_line2 = "City, State 12345"
+phone = "+ 1 123 456 7890"
+url = "https://krabby.dev"
+
+[footer]
+disabled = false
+qr_code_disabled = false
+qr_code_size = 6  # QR code size for escpos (valid range: 1-8)
+qr_code_title = "Scan for details:"  # Text displayed above QR code
+footer_text = "Made with ❤️ by KaBanks"
+
+[providers.linear]
+disabled = false
+signing_secret = ""  # Required if not disabled - get from Linear webhook settings
+max_title_length = 350  # Maximum characters for issue title before truncation
+max_description_length = 350  # Maximum characters for issue description before truncation

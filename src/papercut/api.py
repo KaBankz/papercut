@@ -7,6 +7,7 @@ from fastapi import FastAPI
 from pydantic import BaseModel, Field
 
 from papercut.platforms import linear
+from config import config
 
 app = FastAPI(
     title="Papercut",
@@ -22,8 +23,9 @@ class HealthCheckResponse(BaseModel):
     message: str = Field(..., description="Status message")
 
 
-# Include platform routers under /webhooks prefix
-app.include_router(linear.router, prefix="/webhooks")
+# Include platform routers under /webhooks prefix (only if enabled)
+if not config.providers.linear.disabled:
+    app.include_router(linear.router, prefix="/webhooks")
 
 
 @app.get("/", response_model=HealthCheckResponse, summary="Health Check")

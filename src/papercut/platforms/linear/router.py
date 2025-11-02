@@ -15,7 +15,7 @@ from papercut.core.models import Ticket
 from papercut.core.console import print_console_preview
 from papercut.core.printer import print_to_printer
 from papercut.platforms.linear.models import LinearWebhook
-from config import LINEAR_SIGNING_SECRET
+from config import config
 
 
 class WebhookResponse(BaseModel):
@@ -63,7 +63,9 @@ class LinearAdapter:
 def _verify_signature(payload_body: bytes, signature: str) -> bool:
     """Verify HMAC-SHA256 signature from Linear."""
     expected_signature = hmac.new(
-        LINEAR_SIGNING_SECRET.encode("utf-8"), payload_body, hashlib.sha256
+        config.providers.linear.signing_secret.encode("utf-8"),
+        payload_body,
+        hashlib.sha256,
     ).hexdigest()
     return hmac.compare_digest(expected_signature, signature)
 
@@ -128,14 +130,16 @@ async def handle_webhook(request: Request) -> WebhookResponse:
     try:
         webhook = LinearWebhook(**payload_dict)
         ticket = LinearAdapter.to_ticket(webhook)
-
-        # Output to console and printer
-        print_console_preview(ticket)
-        print_to_printer(ticket)
-
     except Exception as e:
         print(f"⚪ Ignoring unparsable webhook: {e}")
         return WebhookResponse(status="received", ignored=True)
+
+    # Print the ticket
+    try:
+        print_console_preview(ticket)
+        print_to_printer(ticket)
+    except Exception as e:
+        print(f"⚠️  Error printing ticket: {e}")
 
     return WebhookResponse(
         status="received",

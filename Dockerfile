@@ -51,7 +51,10 @@ WORKDIR /app
 COPY --from=builder /app/.venv /app/.venv
 
 COPY src/ ./src/
-COPY config.py main.py ./
+COPY config.py main.py papercut.toml ./
+
+# Create /config directory for user's mounted config
+RUN mkdir -p /config
 
 # Add venv to PATH and src to PYTHONPATH
 ENV PATH="/app/.venv/bin:$PATH" \

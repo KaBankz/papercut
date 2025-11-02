@@ -5,12 +5,7 @@ Formats tickets as ASCII receipts for console logging.
 
 from papercut.core.models import Ticket
 from config import (
-    COMPANY_NAME,
-    COMPANY_ADDRESS_LINE1,
-    COMPANY_ADDRESS_LINE2,
-    COMPANY_URL,
-    COMPANY_PHONE,
-    COMPANY_TAGLINE,
+    config,
     RECEIPT_WIDTH,
     RECEIPT_PADDING,
     RECEIPT_INNER_WIDTH,
@@ -137,32 +132,41 @@ def print_console_preview(ticket: Ticket) -> None:
     _print_line("", width)
 
     # Company header
-    if COMPANY_NAME:
+    if config.header.company_name is not None:
         _print_line(
-            " " * padding + COMPANY_NAME.center(inner_width) + " " * padding, width
+            " " * padding
+            + config.header.company_name.center(inner_width)
+            + " " * padding,
+            width,
         )
 
     # Company address
-    if COMPANY_ADDRESS_LINE1:
+    if config.header.address_line1 is not None:
         _print_line(
-            " " * padding + COMPANY_ADDRESS_LINE1.center(inner_width) + " " * padding,
+            " " * padding
+            + config.header.address_line1.center(inner_width)
+            + " " * padding,
             width,
         )
-    if COMPANY_ADDRESS_LINE2:
+    if config.header.address_line2 is not None:
         _print_line(
-            " " * padding + COMPANY_ADDRESS_LINE2.center(inner_width) + " " * padding,
+            " " * padding
+            + config.header.address_line2.center(inner_width)
+            + " " * padding,
             width,
         )
 
-    if COMPANY_PHONE:
+    if config.header.phone is not None:
         _print_line(
-            " " * padding + f"Tel: {COMPANY_PHONE}".center(inner_width) + " " * padding,
+            " " * padding
+            + f"Tel: {config.header.phone}".center(inner_width)
+            + " " * padding,
             width,
         )
 
-    if COMPANY_URL:
+    if config.header.url is not None:
         _print_line(
-            " " * padding + COMPANY_URL.center(inner_width) + " " * padding, width
+            " " * padding + config.header.url.center(inner_width) + " " * padding, width
         )
 
     _print_line("", width)
@@ -212,20 +216,24 @@ def print_console_preview(ticket: Ticket) -> None:
             _print_line(" " * padding + line + " " * padding, width)
         _print_line("", width)
 
-    _print_line("", width)
-    _print_line("Scan for details:".center(inner_width), width)
-    _print_line("", width)
-    _print_line("QR CODE HERE".center(inner_width), width)
-    _print_line("", width)
-    _print_line("", width)
+    # Footer section
+    if not config.footer.disabled:
+        if config.footer.qr_code_title is not None:
+            _print_line(config.footer.qr_code_title.center(inner_width), width)
+            _print_line("", width)
 
-    # Footer tagline
-    if COMPANY_TAGLINE:
-        _print_line(
-            " " * padding + COMPANY_TAGLINE.center(inner_width) + " " * padding,
-            width,
-        )
-        _print_line("", width)
+        if not config.footer.qr_code_disabled:
+            _print_line("QR CODE HERE".center(inner_width), width)
+            _print_line("", width)
+
+        if config.footer.footer_text is not None:
+            _print_line(
+                " " * padding
+                + config.footer.footer_text.center(inner_width)
+                + " " * padding,
+                width,
+            )
+            _print_line("", width)
 
     _print_border_line(width, "bottom")
     print()

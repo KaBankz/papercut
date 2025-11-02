@@ -6,8 +6,10 @@ dictionaries:
   - python
 words:
   - ASGI
-  - dotenv
+  - ioreg
+  - kabankz
   - libstdc
+  - lsusb
   - PYTHONUNBUFFERED
   - tolower
   - toupper
