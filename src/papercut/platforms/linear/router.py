@@ -7,6 +7,7 @@ import hmac
 import hashlib
 import json
 import time
+import logging
 from typing import Optional
 from fastapi import APIRouter, Request, HTTPException
 from pydantic import BaseModel, Field
@@ -16,6 +17,8 @@ from papercut.core.console import print_console_preview
 from papercut.core.printer import print_to_printer
 from papercut.platforms.linear.models import LinearWebhook
 from config import config
+
+logger = logging.getLogger(__name__)
 
 
 class WebhookResponse(BaseModel):
@@ -100,20 +103,20 @@ async def handle_webhook(request: Request) -> WebhookResponse:
     payload_body = await request.body()
 
     if not _verify_signature(payload_body, signature):
-        print("⚠️  Invalid signature - rejecting webhook")
+        logger.warning("Invalid signature - rejecting webhook")
         raise HTTPException(status_code=401, detail="Invalid signature")
 
     # Parse JSON
     try:
         payload_dict = json.loads(payload_body)
     except json.JSONDecodeError as e:
-        print(f"⚪ Ignoring malformed JSON: {e}")
+        logger.info(f"Ignoring malformed JSON: {e}")
         return WebhookResponse(status="received", ignored=True)
 
     # Verify timestamp
     webhook_timestamp = payload_dict.get("webhookTimestamp")
     if webhook_timestamp and not _verify_timestamp(webhook_timestamp):
-        print("⚠️  Webhook timestamp too old - rejecting to prevent replay attack")
+        logger.warning("Webhook timestamp too old - rejecting to prevent replay attack")
         raise HTTPException(
             status_code=401, detail="Webhook timestamp outside acceptable range"
         )
@@ -123,7 +126,7 @@ async def handle_webhook(request: Request) -> WebhookResponse:
     webhook_action = payload_dict.get("action")
 
     if webhook_type != "Issue" or webhook_action != "create":
-        print(f"⚪ Ignoring webhook: {webhook_type}:{webhook_action}")
+        logger.info(f"Ignoring webhook: {webhook_type}:{webhook_action}")
         return WebhookResponse(status="received", ignored=True)
 
     # Parse and convert to platform-agnostic Ticket
@@ -131,7 +134,7 @@ async def handle_webhook(request: Request) -> WebhookResponse:
         webhook = LinearWebhook(**payload_dict)
         ticket = LinearAdapter.to_ticket(webhook)
     except Exception as e:
-        print(f"⚪ Ignoring unparsable webhook: {e}")
+        logger.info(f"Ignoring unparsable webhook: {e}")
         return WebhookResponse(status="received", ignored=True)
 
     # Print the ticket
@@ -139,7 +142,7 @@ async def handle_webhook(request: Request) -> WebhookResponse:
         print_console_preview(ticket)
         print_to_printer(ticket)
     except Exception as e:
-        print(f"⚠️  Error printing ticket: {e}")
+        logger.error(f"Error printing ticket: {e}")
 
     return WebhookResponse(
         status="received",
