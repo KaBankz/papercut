@@ -3,8 +3,6 @@ name: papercut
 services:
   papercut:
     image: papercut:latest
-    ports:
-      - 8000:8000
     environment:
       - LINEAR_SIGNING_SECRET=${LINEAR_SIGNING_SECRET}
       - PRINTER_USB_VENDOR_ID=${PRINTER_USB_VENDOR_ID}
@@ -19,11 +17,8 @@ services:
       - COMPANY_URL=${COMPANY_URL}
       - COMPANY_TAGLINE=${COMPANY_TAGLINE}
     volumes:
-      # Grant access to USB devices for printer
-      # Find your printer with: lsusb
-      - /dev/bus/usb:/dev/bus/usb
-      - ./assets:/app/assets
-    privileged: false # Use specific device access instead of privileged mode
+      - /dev/bus/usb:/dev/bus/usb:ro
+      - ./assets:/app/assets:ro
     restart: unless-stopped
 
   cloudflared:

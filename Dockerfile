@@ -39,6 +39,9 @@ LABEL org.opencontainers.image.title="${TITLE}" \
       org.opencontainers.image.revision="${VCS_REF}" \
       org.opencontainers.image.licenses="${LICENSE}"
 
+# Install USB libraries required for python-escpos
+RUN apk add --no-cache libusb
+
 WORKDIR /app
 
 COPY --from=builder /app/.venv /app/.venv
