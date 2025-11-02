@@ -13,7 +13,7 @@ VCS_REF := $(shell git rev-parse --short HEAD 2>/dev/null || echo "unknown")
 IMAGE_NAME := $(PROJECT_NAME)
 CONTAINER_NAME := $(PROJECT_NAME)
 IMAGE_TAG := latest
-REGISTRY := # Leave empty for local builds, or set to docker.io/username
+REGISTRY := ghcr.io/kabankz
 
 # Convert git remote URL to HTTPS format (handles both SSH and HTTPS)
 # git@github.com:user/repo.git → https://github.com/user/repo
