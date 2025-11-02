@@ -1,10 +1,4 @@
-.PHONY: build clean inspect help dev start env-clean
-
-# Image configuration
-IMAGE_NAME := papercut
-IMAGE_TAG := latest
-CONTAINER_NAME := papercut
-REGISTRY := # Leave empty for local builds, or set to docker.io/username
+.PHONY: build clean help dev install
 
 # Build metadata - Single source of truth from pyproject.toml and git
 PROJECT_NAME := $(shell grep '^name = ' pyproject.toml | cut -d'"' -f2)
@@ -14,6 +8,12 @@ LICENSE := $(shell grep '^license = ' pyproject.toml | cut -d'"' -f2)
 AUTHORS := $(shell grep '^authors = ' pyproject.toml | sed -E 's/.*name = "([^"]*)".*email = "([^"]*)".*/\1 <\2>/' || echo "Unknown")
 BUILD_DATE := $(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
 VCS_REF := $(shell git rev-parse --short HEAD 2>/dev/null || echo "unknown")
+
+# Image configuration
+IMAGE_NAME := $(PROJECT_NAME)
+CONTAINER_NAME := $(PROJECT_NAME)
+IMAGE_TAG := latest
+REGISTRY := # Leave empty for local builds, or set to docker.io/username
 
 # Convert git remote URL to HTTPS format (handles both SSH and HTTPS)
 # git@github.com:user/repo.git → https://github.com/user/repo
@@ -33,11 +33,16 @@ help: ## Show this help message
 	@echo "Available targets:"
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-15s\033[0m %s\n", $$1, $$2}'
 
+install: ## Install dependencies
+	uv sync
+
 dev: ## Run development server with auto-reload
 	uv run uvicorn papercut.api:app --reload
 
-start: ## Run production server
-	uv run python main.py
+clean: ## Clean up python environment
+	rm -rdf .venv
+	find . | grep -E "(__pycache__|\.pyc$$)" | xargs rm -rf
+	@echo "✅ Python environment cleaned!"
 
 build: ## Build the Docker image with OCI labels
 	@echo "Building $(FULL_IMAGE_NAME):$(IMAGE_TAG)..."
@@ -65,40 +70,3 @@ build: ## Build the Docker image with OCI labels
 		.
 	@rm -f .dockerignore
 	@echo "✅ Build complete!"
-
-compose-up: build ## Build and start with docker compose
-	docker compose up -d
-	@echo "✅ Container running on http://localhost:8000"
-
-inspect: ## Inspect image labels
-	@echo "Image labels for $(FULL_IMAGE_NAME):$(IMAGE_TAG):"
-	@docker inspect $(FULL_IMAGE_NAME):$(IMAGE_TAG) --format='{{json .Config.Labels}}' | jq
-
-run: ## Run the container locally
-	docker run -d \
-		--name $(CONTAINER_NAME) \
-		-p 8000:8000 \
-		--env-file .env \
-		--restart unless-stopped \
-		$(FULL_IMAGE_NAME):$(IMAGE_TAG)
-	@echo "✅ Container running on http://localhost:8000"
-
-stop: ## Stop and remove the container
-	docker stop $(CONTAINER_NAME) 2>/dev/null || true
-	docker rm $(CONTAINER_NAME) 2>/dev/null || true
-
-clean: stop ## Clean up images and containers
-	docker rmi $(FULL_IMAGE_NAME):$(IMAGE_TAG) 2>/dev/null || true
-	docker rmi $(FULL_IMAGE_NAME):$(VERSION) 2>/dev/null || true
-	@rm -f .dockerignore
-	@echo "✅ Cleanup complete!"
-
-logs: ## Show container logs
-	docker logs -f $(CONTAINER_NAME)
-
-env-clean: ## Clean up python environment
-	rm -rdf .venv
-	find . | grep -E "(__pycache__|\.pyc$$)" | xargs rm -rf
-	@echo "✅ Python environment cleaned!"
-
-all: build run ## Build and run the container
