@@ -7,6 +7,7 @@ import logging
 from escpos.printer import Usb
 from escpos.exceptions import USBNotFoundError, Error as EscposError
 from papercut.core.models import Ticket
+from papercut.core.utils import truncate_text
 from config import config
 
 logger = logging.getLogger(__name__)
@@ -229,10 +230,7 @@ def print_to_printer(ticket: Ticket) -> None:
         # Title
         p.text("\n")
         p.set(bold=True, width=2, height=2)
-        title = ticket.title.strip()
-        max_title_len = config.providers.linear.max_title_length
-        if len(title) > max_title_len:
-            title = title[: max_title_len - 3] + "..."
+        title = truncate_text(ticket.title, config.providers.linear.max_title_length)
         p.text(title + "\n")
         p.set(bold=False, width=1, height=1)
 
@@ -240,10 +238,9 @@ def print_to_printer(ticket: Ticket) -> None:
         if ticket.description:
             p.text("\n")
             p.set(align="left")
-            description = ticket.description.strip()
-            max_desc_len = config.providers.linear.max_description_length
-            if len(description) > max_desc_len:
-                description = description[: max_desc_len - 3] + "..."
+            description = truncate_text(
+                ticket.description, config.providers.linear.max_description_length
+            )
             p.text(description + "\n")
 
         # Print footer

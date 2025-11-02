@@ -7,6 +7,7 @@ import tomllib
 from pathlib import Path
 from dataclasses import dataclass
 from typing import Optional
+from papercut.core.utils import normalize_optional_string as _normalize_optional_string
 
 RECEIPT_WIDTH = 48  # Standard for 80mm thermal printers
 RECEIPT_PADDING = 2  # Console preview padding
@@ -59,21 +60,6 @@ class Config:
     header: HeaderConfig
     footer: FooterConfig
     providers: ProvidersConfig
-
-
-def _normalize_optional_string(value: str | None) -> Optional[str]:
-    """
-    Convert empty strings to None for opt-out behavior.
-
-    Args:
-        value: String value from TOML config
-
-    Returns:
-        None if value is empty string, otherwise the value as-is
-    """
-    if value == "":
-        return None
-    return value
 
 
 def _deep_merge(base: dict, overlay: dict) -> None:

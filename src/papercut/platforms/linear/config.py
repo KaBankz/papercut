@@ -5,6 +5,7 @@ Self-contained config schema for the Linear integration.
 
 from dataclasses import dataclass
 from typing import Optional
+from papercut.core.utils import normalize_optional_string as _normalize_optional_string
 
 
 @dataclass
@@ -43,13 +44,6 @@ def validate_config(config: LinearProviderConfig) -> None:
         raise ValueError("max_description_length must be positive")
 
 
-def _normalize_optional_string(value: str | None) -> Optional[str]:
-    """Convert empty strings to None for opt-out behavior."""
-    if value == "":
-        return None
-    return value
-
-
 def load_config_from_toml(toml_data: dict) -> LinearProviderConfig:
     """
     Load and validate Linear config from TOML data.
@@ -69,7 +63,9 @@ def load_config_from_toml(toml_data: dict) -> LinearProviderConfig:
     try:
         config = LinearProviderConfig(
             disabled=linear_data["disabled"],
-            signing_secret=_normalize_optional_string(linear_data.get("signing_secret")),
+            signing_secret=_normalize_optional_string(
+                linear_data.get("signing_secret")
+            ),
             max_title_length=linear_data["max_title_length"],
             max_description_length=linear_data["max_description_length"],
         )

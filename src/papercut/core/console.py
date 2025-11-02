@@ -4,6 +4,7 @@ Formats tickets as ASCII receipts for console logging.
 """
 
 from papercut.core.models import Ticket
+from papercut.core.utils import wrap_text, truncate_text
 from config import (
     config,
     RECEIPT_WIDTH,
@@ -31,48 +32,6 @@ def _print_line(content: str, width: int = None) -> None:
     elif len(content) > width:
         content = content[:width]
     print("│" + content + "│")
-
-
-def _wrap_text(text: str, max_width: int) -> list[str]:
-    """
-    Wrap text to fit within a maximum width, breaking at word boundaries.
-
-    Args:
-        text: The text to wrap
-        max_width: Maximum width per line
-
-    Returns:
-        List of wrapped lines
-    """
-    if len(text) <= max_width:
-        return [text]
-
-    lines = []
-    words = text.split()
-    current_line = []
-    current_length = 0
-
-    for word in words:
-        word_len = len(word) + (1 if current_line else 0)  # +1 for space between words
-        if current_length + word_len <= max_width:
-            current_line.append(word)
-            current_length += word_len
-        else:
-            if current_line:
-                lines.append(" ".join(current_line))
-            # If single word is too long, force break it
-            if len(word) > max_width:
-                lines.append(word[:max_width])
-                current_line = []
-                current_length = 0
-            else:
-                current_line = [word]
-                current_length = len(word)
-
-    if current_line:
-        lines.append(" ".join(current_line))
-
-    return lines
 
 
 def _wrap_two_column(
@@ -198,20 +157,18 @@ def print_console_preview(ticket: Ticket) -> None:
     _print_line("", width)
 
     # Ticket title (wrapped)
-    title = ticket.title.strip()
-    if len(title) > 350:
-        title = title[:347] + "..."
-    title_lines = _wrap_text(title, inner_width)
+    title = truncate_text(ticket.title, config.providers.linear.max_title_length)
+    title_lines = wrap_text(title, inner_width)
     for line in title_lines:
         _print_line(" " * padding + line + " " * padding, width)
     _print_line("", width)
 
     # Ticket description (wrapped)
     if ticket.description:
-        desc = ticket.description.strip()
-        if len(desc) > 350:
-            desc = desc[:347] + "..."
-        desc_lines = _wrap_text(desc, inner_width)
+        desc = truncate_text(
+            ticket.description, config.providers.linear.max_description_length
+        )
+        desc_lines = wrap_text(desc, inner_width)
         for line in desc_lines:
             _print_line(" " * padding + line + " " * padding, width)
         _print_line("", width)
