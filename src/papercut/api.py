@@ -6,7 +6,10 @@ Main app that includes platform-specific routers.
 from fastapi import FastAPI
 from pydantic import BaseModel, Field
 
+from papercut.logging_config import setup_logging
 from config import config
+
+setup_logging()
 
 app = FastAPI(
     title="Papercut",

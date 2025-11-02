@@ -4,10 +4,13 @@ Loads configuration from TOML file with proper validation and empty string handl
 """
 
 import tomllib
+import logging
 from pathlib import Path
 from dataclasses import dataclass
 from typing import Optional
 from papercut.core.utils import normalize_optional_string as _normalize_optional_string
+
+logger = logging.getLogger(__name__)
 
 RECEIPT_WIDTH = 48  # Standard for 80mm thermal printers
 RECEIPT_PADDING = 2  # Console preview padding
@@ -207,6 +210,42 @@ def load_config() -> Config:
         footer=footer,
         providers=providers,
     )
+
+    # Log final merged configuration
+    logger.info("=" * 60)
+    logger.info(f"Config source: {config_file_path}")
+    logger.info("=" * 60)
+    logger.info("")
+    logger.info("[printer]")
+    logger.info(f"  usb_vendor_id = {hex(config.printer.usb_vendor_id)}")
+    logger.info(f"  usb_product_id = {hex(config.printer.usb_product_id)}")
+    logger.info("")
+    logger.info("[header]")
+    logger.info(f"  logo_disabled = {config.header.logo_disabled}")
+    logger.info(f"  company_name = {config.header.company_name}")
+    logger.info(f"  address_line1 = {config.header.address_line1}")
+    logger.info(f"  address_line2 = {config.header.address_line2}")
+    logger.info(f"  phone = {config.header.phone}")
+    logger.info(f"  url = {config.header.url}")
+    logger.info("")
+    logger.info("[footer]")
+    logger.info(f"  disabled = {config.footer.disabled}")
+    logger.info(f"  qr_code_disabled = {config.footer.qr_code_disabled}")
+    logger.info(f"  qr_code_size = {config.footer.qr_code_size}")
+    logger.info(f"  qr_code_title = {config.footer.qr_code_title}")
+    logger.info(f"  footer_text = {config.footer.footer_text}")
+    logger.info("")
+    if config.providers.linear:
+        logger.info("[providers.linear]")
+        logger.info(f"  disabled = {config.providers.linear.disabled}")
+        logger.info(
+            f"  signing_secret = {'***' if config.providers.linear.signing_secret else None}"
+        )
+        logger.info(f"  max_title_length = {config.providers.linear.max_title_length}")
+        logger.info(
+            f"  max_description_length = {config.providers.linear.max_description_length}"
+        )
+    logger.info("=" * 60)
 
     return config
 

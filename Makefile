@@ -37,7 +37,7 @@ install: ## Install dependencies
 	uv sync
 
 dev: ## Run development server with auto-reload
-	uv run uvicorn papercut.api:app --reload
+	uv run uvicorn main:app --reload
 
 clean: ## Clean up python environment
 	rm -rdf .venv
