@@ -37,7 +37,6 @@
           }
         }
       },
-      "required": ["usb_vendor_id", "usb_product_id"],
       "additionalProperties": false
     },
     "header": {
@@ -168,7 +167,6 @@
           }
         }
       },
-      "required": ["disabled", "qr_code_disabled", "qr_code_size"],
       "additionalProperties": false,
       "x-taplo": {
         "initKeys": ["disabled", "footer_text"]
@@ -229,11 +227,6 @@
               }
             }
           },
-          "required": [
-            "disabled",
-            "max_title_length",
-            "max_description_length"
-          ],
           "additionalProperties": false,
           "x-taplo": {
             "initKeys": ["disabled", "signing_secret"]
@@ -246,6 +239,5 @@
       }
     }
   },
-  "required": ["printer", "header", "footer", "providers"],
   "additionalProperties": false
 }
