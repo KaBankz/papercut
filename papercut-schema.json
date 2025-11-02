@@ -36,7 +36,7 @@
       "type": "object",
       "description": "Receipt header section (company information). Set any field to empty string to hide it",
       "default": {
-        "logo_path": "logo.png",
+        "logo_disabled": false,
         "company_name": "Your Company",
         "address_line1": "123 Main St",
         "address_line2": "City, State 12345",
@@ -44,10 +44,10 @@
         "url": "https://krabby.dev"
       },
       "properties": {
-        "logo_path": {
-          "type": "string",
-          "description": "Path to company logo. Relative paths check /config/ directory first. Set to empty string to hide logo",
-          "default": "logo.png"
+        "logo_disabled": {
+          "type": "boolean",
+          "description": "Set to true to disable logo printing. Logo must be named 'logo.png' in /config directory",
+          "default": false
         },
         "company_name": {
           "type": "string",

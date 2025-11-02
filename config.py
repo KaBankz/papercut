@@ -26,7 +26,8 @@ class PrinterConfig:
 class HeaderConfig:
     """Receipt header configuration."""
 
-    logo_path: Optional[str]
+    logo_disabled: bool
+    logo_path: Optional[str]  # Resolved path (None if disabled or not found)
     company_name: Optional[str]
     address_line1: Optional[str]
     address_line2: Optional[str]
@@ -151,31 +152,17 @@ def load_config() -> Config:
     # Parse and normalize header (empty strings → None)
     header_data = toml_data.get("header", {})
 
-    # Resolve and validate logo path
-    logo_path_raw = _normalize_optional_string(header_data.get("logo_path"))
+    # Logo: convention over configuration
+    # If not disabled, check for /config/logo.png
+    logo_disabled = header_data.get("logo_disabled", False)
     resolved_logo_path = None
-    if logo_path_raw:
-        logo_path_obj = Path(logo_path_raw)
-        if logo_path_obj.is_absolute():
-            # Absolute path - use as-is if exists
-            resolved_logo_path = logo_path_raw if logo_path_obj.exists() else None
-        else:
-            # Try in order: /config/, relative to repo root, relative to cwd
-            config_logo = Path(f"/config/{logo_path_raw}")
-            repo_logo = (
-                Path(__file__).parent / logo_path_raw
-            )  # Relative to config.py location
-
-            if config_logo.exists():
-                resolved_logo_path = str(config_logo)
-            elif repo_logo.exists():
-                resolved_logo_path = str(repo_logo)
-            elif logo_path_obj.exists():
-                # Fallback to cwd-relative
-                resolved_logo_path = logo_path_raw
-            # If none exist, resolved_logo_path stays None
+    if not logo_disabled:
+        config_logo = Path("/config/logo.png")
+        if config_logo.exists():
+            resolved_logo_path = str(config_logo)
 
     header = HeaderConfig(
+        logo_disabled=logo_disabled,
         logo_path=resolved_logo_path,
         company_name=_normalize_optional_string(header_data.get("company_name")),
         address_line1=_normalize_optional_string(header_data.get("address_line1")),
