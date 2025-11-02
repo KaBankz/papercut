@@ -160,13 +160,20 @@ def load_config() -> Config:
             # Absolute path - use as-is if exists
             resolved_logo_path = logo_path_raw if logo_path_obj.exists() else None
         else:
-            # Try /config/ first (user's mounted logo), then relative path
+            # Try in order: /config/, relative to repo root, relative to cwd
             config_logo = Path(f"/config/{logo_path_raw}")
+            repo_logo = (
+                Path(__file__).parent / logo_path_raw
+            )  # Relative to config.py location
+
             if config_logo.exists():
                 resolved_logo_path = str(config_logo)
+            elif repo_logo.exists():
+                resolved_logo_path = str(repo_logo)
             elif logo_path_obj.exists():
+                # Fallback to cwd-relative
                 resolved_logo_path = logo_path_raw
-            # If neither exists, resolved_logo_path stays None
+            # If none exist, resolved_logo_path stays None
 
     header = HeaderConfig(
         logo_path=resolved_logo_path,
