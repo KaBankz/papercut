@@ -1,4 +1,4 @@
-#:schema https://raw.githubusercontent.com/kabankz/papercut/master/papercut-schema.json
+"$schema" = "https://raw.githubusercontent.com/kabankz/papercut/master/papercut-schema.json"
 
 # Papercut Default Configuration
 # Copy this file to ./config/papercut.toml to customize
