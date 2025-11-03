@@ -1,13 +1,28 @@
-# Papercut — _Issues you can touch_
+# Papercut — _Pings you can touch_
 
-Print your tickets on a real receipt printer
+[![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
+[![Docker](https://img.shields.io/badge/Docker-%230db7ed.svg?style=flat&logo=docker&logoColor=white)](https://github.com/kabankz/papercut/pkgs/container/papercut)
+[![Python](https://img.shields.io/badge/Python-%2314354C.svg?style=flat&logo=python&logoColor=white)](https://github.com/kabankz/papercut/blob/main/pyproject.toml)
+
+**Make the digital physical** — Papercut brings the satisfying tactility of receipt printers to your digital life. There's something magical about physical output in our increasingly digital world. Whether it's a critical bug that needs fixing, a coffee order that just came in, or just the satisfaction of tearing off a completed task - physical receipts create a presence that pixels can't match.
+
+## ✨ Features
+
+- 🖨️ **ESC/POS Compatible** - Works with most USB receipt printers
+- 🔌 **Webhook-driven** - Integrates with any service that supports webhooks
+- 🎨 **Fully Customizable** - Control layout, formatting, fields, and branding
+- 🐳 **Docker Ready** - Simple deployment with Docker Compose
+- 🔧 **Extensible** - Easy to add new integrations and print formats
+- ⚡ **Real-time** - Instant printing when events occur
 
 ## 📋 Prerequisites
 
-- A receipt printer
-- A Cloudflare Tunnel - [Docs](https://developers.cloudflare.com/cloudflare-one/networks/connectors/cloudflare-tunnel/get-started/create-remote-tunnel/)
-- A ticketing system (e.g. Linear)
-- Docker or Python 3.14+ with uv
+- **Receipt Printer**: ESC/POS compatible USB printer
+  - Tested on: Epson TM-T20III
+  - Should work with any printer supported by [python-escpos](https://github.com/python-escpos/python-escpos)
+- **Cloudflare Account**: For creating a tunnel to expose your webhook endpoint - [Setup Guide](https://developers.cloudflare.com/cloudflare-one/networks/connectors/cloudflare-tunnel/get-started/create-remote-tunnel/)
+- **Integration Source**: Any webhook-capable service (Linear, Slack, etc.)
+- **Runtime**: Docker or Python 3.14+ with uv
 
 > [!NOTE]
 > We recommend using Cloudflare Tunnels to securely expose your papercut instance.
@@ -67,13 +82,16 @@ Print your tickets on a real receipt printer
    signing_secret = "YOUR_PROVIDER_SIGNING_SECRET"
    ```
 
-4. Connect your ticketing system (example: Linear)
+4. Connect your webhook source
+
+   **Example: Linear Integration**
 
    - Webhook URL: `https://<your-domain>/webhooks/linear`
    - In Linear: Settings → API → Webhooks → New
-     - Set a Label for the webhook (e.g. "Papercut")
-     - Set the webhook URL
-     - Save the signing secret to your `papercut.toml` file
+     - Label: "Papercut"
+     - URL: Your webhook URL
+     - Events: Select events to print (e.g., "Issue created")
+   - Copy the signing secret to your `papercut.toml`
 
 5. Start papercut
 
@@ -132,13 +150,16 @@ Print your tickets on a real receipt printer
    signing_secret = "YOUR_PROVIDER_SIGNING_SECRET"
    ```
 
-5. Connect your ticketing system (example: Linear)
+5. Connect your webhook source
+
+   **Example: Linear Integration**
 
    - Webhook URL: `https://<your-domain>/webhooks/linear`
    - In Linear: Settings → API → Webhooks → New
-     - Set a Label for the webhook (e.g. "Papercut")
-     - Set the webhook URL
-     - Save the signing secret to your `papercut.toml` file
+     - Label: "Papercut"
+     - URL: Your webhook URL
+     - Events: Select events to print (e.g., "Issue created")
+   - Copy the signing secret to your `papercut.toml`
 
 6. Start the Cloudflare Tunnel
 
@@ -156,26 +177,49 @@ Print your tickets on a real receipt printer
 
 ## 📝 Configuration
 
-All papercut configuration is done in the `papercut.toml` file.
+All configuration is managed through `config/papercut.toml`. Check out the [default config](papercut.toml) for all available options with documentation.
 
-This file should be placed in the `config` directory.
+Key things to configure:
 
-If you want to omit certain fields, you can set them to an empty string.
+- **Printer IDs**: Your printer's USB vendor and product IDs
+- **Provider settings**: Webhook secrets
 
-You can also place a `logo.png` file in the `config` directory to display a logo on the receipt header.
+> [!TIP]
+> Place a `logo.png` in the `config/` directory to add your logo to receipts
 
 ## 🐛 Troubleshooting
 
-To find your printer's USB IDs, you can run the following commands:
+### Finding Your Printer's USB IDs
 
-On Linux:
+**Linux:**
 
 ```bash
 lsusb
+# Look for your printer, e.g.:
+# Bus 001 Device 004: ID 04b8:0e28 Seiko Epson Corp.
+#                     ID ^^^^:^^^^ (vendor:product)
 ```
 
-On macOS:
+**macOS:**
 
 ```bash
-ioreg -p IOUSB
+ioreg -p IOUSB -l | grep -E '"(idVendor|idProduct|USB Product Name)"'
+# Returns values in decimal - convert to hex for config
 ```
+
+## 🤝 Contributing
+
+Have ideas for what to print? Found a bug? Want to add support for your favorite service? PRs welcome!
+
+The core is intentionally generic - if it has webhooks, we can probably print it.
+
+## 📄 License
+
+This project is licensed under the [AGPL-3.0 License](LICENSE).
+
+---
+
+<!-- markdownlint-disable MD033 -->
+<p align="center">
+  Made with ❤️ by <a href="https://github.com/kabankz">KaBanks</a>
+</p>
