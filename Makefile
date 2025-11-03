@@ -39,6 +39,9 @@ install: ## Install dependencies
 dev: ## Run development server with auto-reload
 	uv run uvicorn main:app --reload
 
+start: ## Start the production server
+	uv run uvicorn main:app --host 0.0.0.0 --port 8000 --no-access-log
+
 clean: ## Clean up python environment
 	rm -rdf .venv
 	find . | grep -E "(__pycache__|\.pyc$$)" | xargs rm -rf
