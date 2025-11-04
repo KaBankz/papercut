@@ -4,7 +4,7 @@ Formats tickets as ASCII receipts for console logging.
 """
 
 from papercut.core.models import Ticket
-from papercut.core.utils import wrap_text, truncate_text
+from papercut.core.utils import wrap_text, truncate_text, utc_to_local
 from config import (
     config,
     RECEIPT_WIDTH,
@@ -131,7 +131,8 @@ def print_console_preview(ticket: Ticket) -> None:
     _print_line("", width)
 
     # Timestamp
-    created_at = ticket.created_at.strftime("%b %d, %Y at %I:%M %p").center(inner_width)
+    local_time = utc_to_local(ticket.created_at)
+    created_at = local_time.strftime("%b %d, %Y at %I:%M %p").center(inner_width)
     _print_line(" " * padding + created_at + " " * padding, width)
     _print_line("", width)
 

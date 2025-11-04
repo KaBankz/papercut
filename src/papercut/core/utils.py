@@ -4,6 +4,25 @@ Common text processing and formatting utilities.
 """
 
 from typing import Optional
+from datetime import datetime, timezone
+
+
+def utc_to_local(utc_dt: datetime) -> datetime:
+    """
+    Convert UTC datetime to local system timezone.
+
+    Args:
+        utc_dt: UTC datetime object (may or may not be timezone-aware)
+
+    Returns:
+        Datetime object in the local system timezone
+    """
+    # If the datetime is naive (no timezone info), assume it's UTC
+    if utc_dt.tzinfo is None:
+        utc_dt = utc_dt.replace(tzinfo=timezone.utc)
+
+    # Convert to local timezone
+    return utc_dt.astimezone()
 
 
 def normalize_optional_string(value: str | None) -> Optional[str]:

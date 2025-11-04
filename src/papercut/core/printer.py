@@ -7,7 +7,7 @@ import logging
 from escpos.printer import Usb
 from escpos.exceptions import USBNotFoundError, Error as EscposError
 from papercut.core.models import Ticket
-from papercut.core.utils import truncate_text
+from papercut.core.utils import truncate_text, utc_to_local
 from config import config
 
 logger = logging.getLogger(__name__)
@@ -206,7 +206,8 @@ def print_to_printer(ticket: Ticket) -> None:
 
         # Timestamp
         p.set(align="center")
-        p.text(ticket.created_at.strftime("\n" + "%b %d, %Y at %I:%M %p") + "\n\n")
+        local_time = utc_to_local(ticket.created_at)
+        p.text(local_time.strftime("\n" + "%b %d, %Y at %I:%M %p") + "\n\n")
 
         # Ticket details (2-column layout: labels left, values right)
         p.set(align="left", bold=False, width=1, height=1)
