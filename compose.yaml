@@ -4,6 +4,8 @@ services:
   papercut:
     build: .
     image: ghcr.io/kabankz/papercut:latest
+    environment:
+      - TZ=America/New_York
     volumes:
       - /dev/bus/usb:/dev/bus/usb:ro
       - ./config:/config:ro
