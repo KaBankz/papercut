@@ -1,21 +1,22 @@
 name: papercut
 
 services:
-  papercut:
-    build: .
-    image: ghcr.io/kabankz/papercut:latest
-    environment:
-      - TZ=America/New_York
-    volumes:
-      - /dev/bus/usb:/dev/bus/usb:ro
-      - ./config:/config:ro
-    # Grant full access to USB devices (required for printer communication)
-    privileged: true
-    restart: unless-stopped
+  # papercut:
+  #   build: .
+  #   image: ghcr.io/kabankz/papercut:latest
+  #   environment:
+  #     - TZ=America/New_York
+  #   volumes:
+  #     - /dev/bus/usb:/dev/bus/usb:ro
+  #     - ./config:/config:ro
+  #   # Grant full access to USB devices (required for printer communication)
+  #   privileged: true
+  #   restart: unless-stopped
 
   cloudflared:
     image: docker.io/cloudflare/cloudflared:2025.6.1
     command: tunnel --no-autoupdate run
+    network_mode: host
     environment:
       - TUNNEL_TOKEN=${TUNNEL_TOKEN}
     restart: unless-stopped

@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 def _format_receipt_line(
     label: str,
     value: str,
-    width: int = 48,  # 48 is standard for 80mm paper with Font A
+    width: int = 48,  # 48 is standard for 80mm paper with Font A 64 for Font B
 ) -> str:
     """
     Format a receipt line with label left-aligned and value right-aligned.
@@ -97,7 +97,11 @@ def _get_printer():
             f"Connecting to USB printer: vendor={hex(config.printer.usb_vendor_id)}, "
             f"product={hex(config.printer.usb_product_id)}"
         )
-        return Usb(config.printer.usb_vendor_id, config.printer.usb_product_id)
+        return Usb(
+            idVendor=config.printer.usb_vendor_id,
+            idProduct=config.printer.usb_product_id,
+            profile="TM-T20II",
+        )
 
     except USBNotFoundError as e:
         logger.error(
@@ -116,12 +120,12 @@ def _print_header(p) -> None:
     Args:
         p: ESC/POS printer instance
     """
+
     # Logo
     if config.header.logo_path is not None:
         try:
-            p.set(align="center")
-            p.image(config.header.logo_path)
-            p.text("\n")
+            p.image(config.header.logo_path, center=True)
+            p.ln()
         except Exception as e:
             logger.warning(
                 f"Failed to print logo '{config.header.logo_path}': {e}. "
@@ -131,21 +135,28 @@ def _print_header(p) -> None:
 
     # Company name (large, bold)
     if config.header.company_name is not None:
-        p.set(font="a", align="center", bold=True, width=2, height=2)
-        p.text(config.header.company_name + "\n")
-        p.set(font="a", align="center", bold=False, width=1, height=1)
+        p.set(
+            font="b", align="center", bold=True, double_height=True, double_width=True
+        )
+        p.textln(config.header.company_name)
+        p.ln()
+
+    p.set_with_default(align="center")
 
     # Address lines
     if config.header.address_line1 is not None:
-        p.text(config.header.address_line1 + "\n")
+        p.textln(config.header.address_line1)
     if config.header.address_line2 is not None:
-        p.text(config.header.address_line2 + "\n")
+        p.textln(config.header.address_line2)
 
     # Contact info
     if config.header.phone is not None:
-        p.text(config.header.phone + "\n")
+        p.textln(config.header.phone)
     if config.header.url is not None:
-        p.text(config.header.url + "\n")
+        p.textln(config.header.url)
+
+    p.ln()
+    p.set_with_default()
 
 
 def _print_footer(p, url: str) -> None:
@@ -159,22 +170,24 @@ def _print_footer(p, url: str) -> None:
     if config.footer.disabled:
         return
 
-    p.text("\n")
-    p.set(align="center")
+    p.ln(2)
+    p.set_with_default(align="center")
 
     # QR code title
     if config.footer.qr_code_title is not None:
-        p.text(config.footer.qr_code_title + "\n")
+        p.textln(config.footer.qr_code_title)
 
     # QR code
     if not config.footer.qr_code_disabled:
-        p.qr(url, size=config.footer.qr_code_size)
-        p.text("\n")
+        p.qr(url, size=config.footer.qr_code_size, native=True)
+        p.ln()
 
     # Footer text
     if config.footer.footer_text is not None:
-        p.set(align="center", bold=False)
-        p.text(config.footer.footer_text + "\n\n")
+        p.set(underline=True)
+        p.textln(config.footer.footer_text)
+
+    p.set_with_default()
 
 
 def print_to_printer(ticket: Ticket) -> None:
@@ -201,16 +214,19 @@ def print_to_printer(ticket: Ticket) -> None:
     try:
         p = _get_printer()
 
+        # Initialize printer to clean state
+        p.hw("INIT")
+
         # Print header
         _print_header(p)
 
         # Timestamp
-        p.set(align="center")
-        local_time = utc_to_local(ticket.created_at)
-        p.text(local_time.strftime("\n" + "%b %d, %Y at %I:%M %p") + "\n\n")
+        p.set_with_default(align="center")
+        p.textln(utc_to_local(ticket.created_at).strftime("%b %d, %Y at %I:%M %p"))
+
+        p.set_with_default()
 
         # Ticket details (2-column layout: labels left, values right)
-        p.set(align="left", bold=False, width=1, height=1)
         p.text(_format_receipt_line("ID:", ticket.identifier))
         p.text(_format_receipt_line("Team:", ticket.team))
         p.text(_format_receipt_line("Priority:", ticket.priority))
@@ -229,20 +245,20 @@ def print_to_printer(ticket: Ticket) -> None:
             p.text(_format_receipt_line("Labels:", labels_text))
 
         # Title
-        p.text("\n")
-        p.set(bold=True, width=2, height=2)
+        p.ln()
+        p.set(font="b", bold=True, double_height=True, double_width=True)
         title = truncate_text(ticket.title, config.providers.linear.max_title_length)
-        p.text(title + "\n")
-        p.set(bold=False, width=1, height=1)
+        p.block_text(title, columns=32)
+
+        p.set_with_default()
 
         # Description
         if ticket.description:
-            p.text("\n")
-            p.set(align="left")
+            p.ln(2)
             description = truncate_text(
                 ticket.description, config.providers.linear.max_description_length
             )
-            p.text(description + "\n")
+            p.block_text(description, columns=48)
 
         # Print footer
         _print_footer(p, ticket.url)

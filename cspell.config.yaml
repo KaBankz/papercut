@@ -14,6 +14,7 @@ words:
   - PYTHONUNBUFFERED
   - scannability
   - taplo
+  - textln
   - tolower
   - toupper
   - unstarted
