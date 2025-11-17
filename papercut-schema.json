@@ -14,7 +14,8 @@
       "description": "USB printer configuration",
       "default": {
         "usb_vendor_id": "0x04b8",
-        "usb_product_id": "0x0e28"
+        "usb_product_id": "0x0e28",
+        "profile": "TM-T20II"
       },
       "properties": {
         "usb_vendor_id": {
@@ -28,6 +29,11 @@
           "description": "USB product ID in hex format. Varies by printer model (TM-T20III: 0x0e28, TM-T88V: 0x0202)",
           "pattern": "^0x[0-9a-fA-F]{4}$",
           "default": "0x0e28"
+        },
+        "profile": {
+          "type": "string",
+          "description": "Printer profile name for ESC/POS capabilities. See python-escpos documentation for the full list of available profiles",
+          "default": "TM-T20II"
         }
       },
       "additionalProperties": false

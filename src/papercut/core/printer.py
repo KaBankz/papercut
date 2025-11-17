@@ -100,7 +100,7 @@ def _get_printer():
         return Usb(
             idVendor=config.printer.usb_vendor_id,
             idProduct=config.printer.usb_product_id,
-            profile="TM-T20II",
+            profile=config.printer.profile,
         )
 
     except USBNotFoundError as e:

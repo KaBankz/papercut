@@ -9,6 +9,7 @@
 # Run `lsusb` (Linux) or `ioreg` (macOS) to find your printer's IDs
 usb_vendor_id = "0x04b8"
 usb_product_id = "0x0e28"
+profile = "TM-T20II"  # Printer profile (see python-escpos documentation for available profiles)
 
 [header]
 # Set any field to empty string "" to hide it from receipts

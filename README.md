@@ -71,6 +71,7 @@
    [printer]
    usb_vendor_id = "0x04b8"   # e.g., Epson
    usb_product_id = "0x0e28"  # model-specific
+   profile = "TM-T20II"  # Printer profile (see python-escpos documentation for available profiles)
 
    [header]
    company_name = "Your Company"
@@ -139,6 +140,7 @@
    [printer]
    usb_vendor_id = "0x04b8"   # e.g., Epson
    usb_product_id = "0x0e28"  # model-specific
+   profile = "TM-T20II"  # Printer profile (see python-escpos documentation for available profiles)
 
    [header]
    company_name = "Your Company"

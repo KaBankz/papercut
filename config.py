@@ -23,6 +23,7 @@ class PrinterConfig:
 
     usb_vendor_id: int
     usb_product_id: int
+    profile: str
 
 
 @dataclass
@@ -139,6 +140,7 @@ def load_config() -> Config:
     try:
         vendor_id_str = printer_data["usb_vendor_id"]
         product_id_str = printer_data["usb_product_id"]
+        profile = printer_data["profile"]
         printer = PrinterConfig(
             usb_vendor_id=int(vendor_id_str, 16)
             if isinstance(vendor_id_str, str)
@@ -146,6 +148,7 @@ def load_config() -> Config:
             usb_product_id=int(product_id_str, 16)
             if isinstance(product_id_str, str)
             else product_id_str,
+            profile=profile,
         )
     except (KeyError, ValueError) as e:
         raise ValueError(
@@ -233,6 +236,7 @@ def load_config() -> Config:
     logger.info("[printer]")
     logger.info(f"  usb_vendor_id = {hex(config.printer.usb_vendor_id)}")
     logger.info(f"  usb_product_id = {hex(config.printer.usb_product_id)}")
+    logger.info(f"  profile = {config.printer.profile}")
     logger.info("")
     logger.info("[header]")
     logger.info(f"  logo_disabled = {config.header.logo_disabled}")
