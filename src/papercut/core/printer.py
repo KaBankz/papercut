@@ -268,11 +268,12 @@ def print_to_printer(ticket: Ticket) -> None:
         # Description
         if ticket.description:
             p.ln(2)
+            from papercut.core.markdown import render_markdown_to_receipt
+
             description = truncate_text(
                 ticket.description, config.providers.linear.max_description_length
             )
-            columns = p.profile.get_columns(font="a")
-            p.block_text(description, columns=columns)
+            render_markdown_to_receipt(p, description)
 
         # Print footer
         _print_footer(p, ticket.url)
