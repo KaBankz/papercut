@@ -46,7 +46,7 @@
       "properties": {
         "logo_disabled": {
           "type": "boolean",
-          "description": "Set to true to disable logo printing. Logo must be named 'logo.png' in /config directory",
+          "description": "Set to true to disable logo printing. Logo must be named 'logo' in /config with any of the supported formats (png, jpg, gif, bmp)",
           "default": false
         },
         "company_name": {

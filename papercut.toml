@@ -12,7 +12,7 @@ usb_product_id = "0x0e28"
 
 [header]
 # Set any field to empty string "" to hide it from receipts
-logo_disabled = false # Place logo.png in /config directory. Set to true to disable logo printing.
+logo_disabled = false # Place logo.png or any other supported format (png, jpg, gif, bmp) in /config directory. Set to true to disable logo printing.
 company_name = "Your Company"
 address_line1 = "123 Main St"
 address_line2 = "City, State 12345"

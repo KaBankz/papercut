@@ -185,7 +185,7 @@ Key things to configure:
 - **Provider settings**: Webhook secrets
 
 > [!TIP]
-> Place a `logo.png` in the `config/` directory to add your logo to receipts
+> Place a file named `logo` in the `config/` directory with any supported format (png, jpg, gif, bmp) to add your logo to receipts
 
 ## 🐛 Troubleshooting
 

@@ -156,13 +156,27 @@ def load_config() -> Config:
     header_data = toml_data.get("header", {})
 
     # Logo: convention over configuration
-    # If not disabled, check for /config/logo.png
+    # If not disabled, check for /config/logo.* then ./config/logo.* with supported formats
     logo_disabled = header_data.get("logo_disabled", False)
     resolved_logo_path = None
     if not logo_disabled:
-        config_logo = Path("/config/logo.png")
-        if config_logo.exists():
-            resolved_logo_path = str(config_logo)
+        # Supported image formats for ESC/POS printers
+        supported_extensions = [".png", ".jpg", ".gif", ".bmp"]
+
+        # Prefer absolute path first
+        for ext in supported_extensions:
+            absolute_logo = Path(f"/config/logo{ext}")
+            if absolute_logo.exists():
+                resolved_logo_path = str(absolute_logo)
+                break
+
+        # Fall back to relative path if not found
+        if resolved_logo_path is None:
+            for ext in supported_extensions:
+                relative_logo = Path(f"./config/logo{ext}")
+                if relative_logo.exists():
+                    resolved_logo_path = str(relative_logo)
+                    break
 
     header = HeaderConfig(
         logo_disabled=logo_disabled,
