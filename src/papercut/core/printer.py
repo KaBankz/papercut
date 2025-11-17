@@ -14,9 +14,9 @@ logger = logging.getLogger(__name__)
 
 
 def _format_receipt_line(
+    p: Usb,
     label: str,
     value: str,
-    width: int = 48,  # 48 is standard for 80mm paper with Font A 64 for Font B
 ) -> str:
     """
     Format a receipt line with label left-aligned and value right-aligned.
@@ -29,17 +29,17 @@ def _format_receipt_line(
     Args:
         label: The label text (e.g., "ID:", "Team:")
         value: The value text
-        width: Total character width of the receipt line (default: 48)
 
     Returns:
         Formatted string with proper spacing, possibly multi-line
     """
     # Maximum width for the value column (roughly half the receipt)
-    max_value_width = width // 2
+    max_col_count = p.profile.get_columns(font="a")
+    max_col_width = max_col_count // 2
 
     # If value fits on one line with the label
-    if len(value) <= max_value_width:
-        spaces_needed = width - len(label) - len(value)
+    if len(value) <= max_col_width:
+        spaces_needed = max_col_count - len(label) - len(value)
         if spaces_needed < 1:
             spaces_needed = 1
         return f"{label}{' ' * spaces_needed}{value}\n"
@@ -52,7 +52,7 @@ def _format_receipt_line(
 
     for word in words:
         word_len = len(word) + (1 if current_line else 0)  # +1 for space between words
-        if current_length + word_len <= max_value_width:
+        if current_length + word_len <= max_col_width:
             current_line.append(word)
             current_length += word_len
         else:
@@ -69,13 +69,13 @@ def _format_receipt_line(
     for i, line in enumerate(lines):
         if i == 0:
             # First line includes the label
-            spaces_needed = width - len(label) - len(line)
+            spaces_needed = max_col_count - len(label) - len(line)
             if spaces_needed < 1:
                 spaces_needed = 1
             result.append(f"{label}{' ' * spaces_needed}{line}\n")
         else:
             # Subsequent lines are right-aligned without label
-            spaces_needed = width - len(line)
+            spaces_needed = max_col_count - len(line)
             result.append(f"{' ' * spaces_needed}{line}\n")
 
     return "".join(result)
@@ -227,28 +227,32 @@ def print_to_printer(ticket: Ticket) -> None:
         p.set_with_default()
 
         # Ticket details (2-column layout: labels left, values right)
-        p.text(_format_receipt_line("ID:", ticket.identifier))
-        p.text(_format_receipt_line("Team:", ticket.team))
-        p.text(_format_receipt_line("Priority:", ticket.priority))
-        p.text(_format_receipt_line("Status:", ticket.status))
+        p.text(_format_receipt_line(p, "ID:", ticket.identifier))
+        p.text(_format_receipt_line(p, "Team:", ticket.team))
+        p.text(_format_receipt_line(p, "Priority:", ticket.priority))
+        p.text(_format_receipt_line(p, "Status:", ticket.status))
 
         if ticket.assignee:
-            p.text(_format_receipt_line("Assignee:", ticket.assignee))
+            p.text(_format_receipt_line(p, "Assignee:", ticket.assignee))
 
         if ticket.due_date:
-            p.text(_format_receipt_line("Due:", ticket.due_date.strftime("%b %d, %Y")))
+            p.text(
+                _format_receipt_line(p, "Due:", ticket.due_date.strftime("%b %d, %Y"))
+            )
 
-        p.text(_format_receipt_line("Creator:", ticket.created_by))
+        p.text(_format_receipt_line(p, "Creator:", ticket.created_by))
 
         if ticket.labels:
             labels_text = ", ".join(ticket.labels)
-            p.text(_format_receipt_line("Labels:", labels_text))
+            p.text(_format_receipt_line(p, "Labels:", labels_text))
 
         # Title
         p.ln()
         p.set(font="b", bold=True, double_height=True, double_width=True)
         title = truncate_text(ticket.title, config.providers.linear.max_title_length)
-        p.block_text(title, columns=32)
+        # half the col count since font size is doubled
+        columns = p.profile.get_columns(font="b") // 2
+        p.block_text(title, columns=columns)
 
         p.set_with_default()
 
@@ -258,7 +262,8 @@ def print_to_printer(ticket: Ticket) -> None:
             description = truncate_text(
                 ticket.description, config.providers.linear.max_description_length
             )
-            p.block_text(description, columns=48)
+            columns = p.profile.get_columns(font="a")
+            p.block_text(description, columns=columns)
 
         # Print footer
         _print_footer(p, ticket.url)
