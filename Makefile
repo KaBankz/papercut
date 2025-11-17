@@ -42,6 +42,10 @@ dev: ## Run development server with auto-reload
 start: ## Start the production server
 	uv run uvicorn main:app --host 0.0.0.0 --port 8000 --no-access-log
 
+lint: ## Run linting
+	uv run ruff format
+	uv run ruff check
+
 clean: ## Clean up python environment
 	rm -rdf .venv
 	find . | grep -E "(__pycache__|\.pyc$$)" | xargs rm -rf
