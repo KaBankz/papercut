@@ -52,9 +52,26 @@ class Label(BaseModel):
     name: str
 
 
+class Project(BaseModel):
+    """A Linear project"""
+
+    id: str
+    name: str
+    url: str
+
+
+class Milestone(BaseModel):
+    """A project milestone"""
+
+    id: str
+    name: str
+    targetDate: date  # ISO date string like "2025-11-20"
+
+
 class IssueData(BaseModel):
     """The full issue data"""
 
+    # Required fields (always present)
     id: str
     createdAt: datetime
     updatedAt: datetime
@@ -72,25 +89,76 @@ class IssueData(BaseModel):
     stateId: str
     reactionData: List[dict]
     priorityLabel: str
-    botActor: Optional[dict] = None
     identifier: str  # e.g., "WEB-4"
     url: str
     subscriberIds: List[str]
+
+    # Nested objects (always present)
     state: IssueState
     team: Team
     labels: List[Label]
+
+    # Optional content fields
     description: Optional[str] = None
     descriptionData: Optional[str] = None  # JSON string with rich text format
+    botActor: Optional[dict] = None
+
+    # Assignment fields
     assigneeId: Optional[str] = None
     assignee: Optional[User] = None
+    delegateId: Optional[str] = None  # User delegated to
+    externalUserCreatorId: Optional[str] = None  # External user who created
+    snoozedById: Optional[str] = None  # User who snoozed
+
+    # Date/time fields
     dueDate: Optional[date] = None  # ISO date string like "2025-10-26"
+    archivedAt: Optional[datetime] = None
+    startedAt: Optional[datetime] = None
+    completedAt: Optional[datetime] = None
+    canceledAt: Optional[datetime] = None
+    autoClosedAt: Optional[datetime] = None
+    autoArchivedAt: Optional[datetime] = None
+    snoozedUntilAt: Optional[datetime] = None
+
+    # Triage timing
+    startedTriageAt: Optional[datetime] = None
+    triagedAt: Optional[datetime] = None
+
+    # SLA timing fields
+    slaStartedAt: Optional[datetime] = None
+    slaMediumRiskAt: Optional[datetime] = None
+    slaHighRiskAt: Optional[datetime] = None
+    slaBreachesAt: Optional[datetime] = None
+
+    # Project/Cycle/Milestone associations
+    cycleId: Optional[str] = None
+    projectId: Optional[str] = None
+    projectMilestoneId: Optional[str] = None
+    addedToProjectAt: Optional[datetime] = None
+    addedToCycleAt: Optional[datetime] = None
+    project: Optional[Project] = None
+    milestone: Optional[Milestone] = None
+
+    # Issue hierarchy
+    parentId: Optional[str] = None  # For sub-issues
+    subIssueSortOrder: Optional[float] = None
+
+    # Status flags
+    trashed: Optional[bool] = None  # True when issue is deleted/trashed
+    estimate: Optional[int] = None  # Story points or time estimate
+
+    # Template and activity fields
+    lastAppliedTemplateId: Optional[str] = None
+    recurringIssueTemplateId: Optional[str] = None
+    sourceCommentId: Optional[str] = None  # Comment that created this issue
+    activitySummary: Optional[str] = None
 
 
 class LinearWebhook(BaseModel):
     """
-    Linear webhook payload for Issue creation events.
+    Linear webhook payload for Issue events.
 
-    This model is specifically designed for Issue:create webhooks.
+    Supports all webhook actions: "create", "update", "remove"
     All other webhook types are filtered out before parsing.
 
     See: https://linear.app/developers/webhooks#data-change-events-payload
@@ -100,11 +168,11 @@ class LinearWebhook(BaseModel):
     actor: Actor
     createdAt: datetime
     data: IssueData  # Issue data for Issue webhooks
-    url: str
     type: str  # "Issue", "Comment", "Project", etc.
     organizationId: str
     webhookTimestamp: int  # Unix timestamp in milliseconds
     webhookId: str
+    url: Optional[str] = None  # Present for create/update, absent for remove
     updatedFrom: Optional[dict] = None  # Only present for "update" actions
 
     class Config:
