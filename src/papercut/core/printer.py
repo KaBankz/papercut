@@ -232,6 +232,15 @@ def print_to_printer(ticket: Ticket) -> None:
         p.text(_format_receipt_line(p, "Priority:", ticket.priority))
         p.text(_format_receipt_line(p, "Status:", ticket.status))
 
+        if ticket.project:
+            p.text(_format_receipt_line(p, "Project:", ticket.project))
+
+        if ticket.milestone:
+            milestone_text = ticket.milestone
+            if ticket.milestone_date:
+                milestone_text += f" ({ticket.milestone_date.strftime('%b %d')})"
+            p.text(_format_receipt_line(p, "Milestone:", milestone_text))
+
         if ticket.assignee:
             p.text(_format_receipt_line(p, "Assignee:", ticket.assignee))
 

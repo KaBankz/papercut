@@ -28,3 +28,6 @@ class Ticket(BaseModel):
     team: str
     due_date: Optional[date] = None
     url: str
+    project: Optional[str] = None
+    milestone: Optional[str] = None
+    milestone_date: Optional[date] = None

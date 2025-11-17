@@ -60,6 +60,9 @@ class LinearAdapter:
             team=data.team.name,
             due_date=data.dueDate,
             url=data.url,
+            project=data.project.name if data.project else None,
+            milestone=data.milestone.name if data.milestone else None,
+            milestone_date=data.milestone.targetDate if data.milestone else None,
         )
 
 
