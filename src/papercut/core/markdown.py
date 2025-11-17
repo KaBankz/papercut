@@ -74,10 +74,13 @@ def _render_h1(printer, text: str, columns: int) -> None:
     """
     Render H1 header: double width + double height + bold.
     Left-aligned with spacing before/after.
+    Supports inline markdown (stripped since header is already bold).
     """
+    # Strip inline markdown from header (it's already bold/styled)
+    clean_text = _strip_inline_markdown(text)
     printer.set(bold=True, double_width=True, double_height=True)
     # Half columns because double_width makes each char 2x wide
-    printer.block_text(text, columns=columns // 2)
+    printer.block_text(clean_text, columns=columns // 2)
     printer.set_with_default()
     printer.ln()
 
@@ -86,9 +89,12 @@ def _render_h2(printer, text: str, columns: int) -> None:
     """
     Render H2 header: double height + bold.
     Left-aligned with spacing before.
+    Supports inline markdown (stripped since header is already bold).
     """
+    # Strip inline markdown from header (it's already bold/styled)
+    clean_text = _strip_inline_markdown(text)
     printer.set(bold=True, double_height=True)
-    printer.block_text(text, columns=columns)
+    printer.block_text(clean_text, columns=columns)
     printer.set_with_default()
     printer.ln()
 
@@ -97,9 +103,12 @@ def _render_h3_plus(printer, text: str, columns: int) -> None:
     """
     Render H3+ headers (H3, H4, H5, H6): bold only.
     Left-aligned with spacing before.
+    Supports inline markdown (stripped since header is already bold).
     """
+    # Strip inline markdown from header (it's already bold/styled)
+    clean_text = _strip_inline_markdown(text)
     printer.set(bold=True)
-    printer.block_text(text, columns=columns)
+    printer.block_text(clean_text, columns=columns)
     printer.set_with_default()
     printer.ln()
 
@@ -206,6 +215,30 @@ def _render_segments_with_wrapping(printer, segments: list, columns: int) -> Non
 
     # End the line
     printer.ln()
+
+
+def _strip_inline_markdown(text: str) -> str:
+    """
+    Strip inline markdown formatting symbols from text.
+
+    Removes:
+    - **bold** → bold
+    - *italic* → italic
+    - `code` → code
+    - [link](url) → link
+
+    Used for headers since they're already styled prominently.
+    """
+    # Remove bold
+    text = re.sub(r"\*\*([^*]+?)\*\*", r"\1", text)
+    # Remove italic (careful not to match bold remnants)
+    text = re.sub(r"(?<!\*)\*([^*]+?)\*(?!\*)", r"\1", text)
+    # Remove inline code
+    text = re.sub(r"`([^`]+?)`", r"\1", text)
+    # Remove links [text](url) → text
+    text = re.sub(r"\[([^\]]+?)\]\([^)]+?\)", r"\1", text)
+
+    return text
 
 
 def _parse_inline_formatting(text: str) -> list:
