@@ -111,26 +111,77 @@ def _render_text_with_inline_formatting(printer, text: str, columns: int) -> Non
     # Parse inline formatting and split into segments
     segments = _parse_inline_formatting(text)
 
-    # Collect all text segments to use block_text for proper wrapping
+    # If no formatting, use block_text for efficient wrapping
     if all(seg["type"] == "normal" for seg in segments):
-        # No formatting, use block_text for efficient wrapping
         printer.block_text(text, columns=columns)
     else:
-        # Has formatting, need to print with styles
-        for segment in segments:
-            content = segment["content"]
-            seg_type = segment["type"]
+        # Has formatting, need manual word wrapping with position tracking
+        _render_segments_with_wrapping(printer, segments, columns)
 
+
+def _render_segments_with_wrapping(printer, segments: list, columns: int) -> None:
+    """
+    Render formatted segments with proper word wrapping.
+
+    Tracks current column position and wraps at word boundaries (not mid-word).
+    Applies formatting (bold/underline) to appropriate segments.
+    Preserves exact spacing from original markdown.
+
+    Args:
+        printer: ESC/POS printer instance
+        segments: List of {'type': 'normal'|'bold'|'italic', 'content': 'text'}
+        columns: Maximum columns per line
+    """
+    current_col = 0
+
+    for segment in segments:
+        content = segment["content"]
+        seg_type = segment["type"]
+
+        if not content:
+            continue
+
+        # Use regex to split but preserve all spacing
+        # This splits on spaces but keeps them as separate tokens
+        import re
+
+        tokens = re.split(r"(\s+)", content)
+
+        for token in tokens:
+            if not token:
+                continue
+
+            token_length = len(token)
+
+            # Check if token fits on current line
+            if current_col > 0 and current_col + token_length > columns:
+                # Check if it's whitespace - if so, skip it and start new line
+                if token.isspace():
+                    printer.ln()
+                    current_col = 0
+                    continue
+                else:
+                    # Not whitespace, wrap to new line
+                    printer.ln()
+                    current_col = 0
+
+            # Skip leading whitespace at start of new line
+            if current_col == 0 and token.isspace():
+                continue
+
+            # Print token with appropriate formatting
             if seg_type == "bold":
                 printer.set(bold=True)
-                printer.text(content)
+                printer.text(token)
                 printer.set_with_default()
             elif seg_type == "italic":
-                printer.set(underline=True)
-                printer.text(content)
+                printer.set(underline=1)
+                printer.text(token)
                 printer.set_with_default()
             else:
-                printer.text(content)
+                printer.text(token)
+
+            current_col += token_length
 
 
 def _parse_inline_formatting(text: str) -> list:
