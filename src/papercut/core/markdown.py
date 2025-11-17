@@ -31,7 +31,28 @@ def render_markdown_to_receipt(printer, markdown_text: str) -> None:
     lines = markdown_text.split("\n")
     columns = printer.profile.get_columns(font="a")
 
+    # Track consecutive blank lines to reduce them
+    consecutive_blanks = 0
+
     for line in lines:
+        # Detect blank lines
+        if line.strip() == "":
+            consecutive_blanks += 1
+            continue
+
+        # Process consecutive blanks before printing content
+        if consecutive_blanks > 0:
+            # Reduce consecutive blank lines:
+            # 1 blank (\n\n) → 0 printed (consecutive content)
+            # 2 blanks (\n\n\n) → 1 printed
+            # 3 blanks (\n\n\n\n) → 1 printed
+            # 4 blanks (\n\n\n\n\n) → 2 printed
+            # Formula: consecutive_blanks // 2
+            blanks_to_print = consecutive_blanks // 2
+            if blanks_to_print > 0:
+                printer.ln(blanks_to_print)
+            consecutive_blanks = 0
+
         # Detect headers (must be at line start)
         if line.startswith("# ") and not line.startswith("## "):
             _render_h1(printer, line[2:], columns)
@@ -44,9 +65,6 @@ def render_markdown_to_receipt(printer, markdown_text: str) -> None:
         # Detect bullet lists (with space after marker)
         elif line.strip().startswith(("* ", "- ")) and len(line.strip()) > 2:
             _render_bullet(printer, line.strip()[2:], columns)
-        # Blank lines
-        elif line.strip() == "":
-            printer.ln()
         # Everything else: raw markdown
         else:
             _render_text(printer, line, columns)
@@ -61,6 +79,7 @@ def _render_h1(printer, text: str, columns: int) -> None:
     # Half columns because double_width makes each char 2x wide
     printer.block_text(text, columns=columns // 2)
     printer.set_with_default()
+    printer.ln()
 
 
 def _render_h2(printer, text: str, columns: int) -> None:
@@ -71,6 +90,7 @@ def _render_h2(printer, text: str, columns: int) -> None:
     printer.set(bold=True, double_height=True)
     printer.block_text(text, columns=columns)
     printer.set_with_default()
+    printer.ln()
 
 
 def _render_h3_plus(printer, text: str, columns: int) -> None:
@@ -81,6 +101,7 @@ def _render_h3_plus(printer, text: str, columns: int) -> None:
     printer.set(bold=True)
     printer.block_text(text, columns=columns)
     printer.set_with_default()
+    printer.ln()
 
 
 def _render_bullet(printer, text: str, columns: int) -> None:
@@ -94,7 +115,6 @@ def _render_bullet(printer, text: str, columns: int) -> None:
     # Render text with inline formatting
     # Note: We don't adjust columns here since we're handling wrapping manually
     _render_text_with_inline_formatting(printer, text, columns - 2)
-    printer.ln()
 
 
 def _render_text_with_inline_formatting(printer, text: str, columns: int) -> None:
@@ -114,6 +134,7 @@ def _render_text_with_inline_formatting(printer, text: str, columns: int) -> Non
     # If no formatting, use block_text for efficient wrapping
     if all(seg["type"] == "normal" for seg in segments):
         printer.block_text(text, columns=columns)
+        printer.ln()
     else:
         # Has formatting, need manual word wrapping with position tracking
         _render_segments_with_wrapping(printer, segments, columns)
@@ -182,6 +203,9 @@ def _render_segments_with_wrapping(printer, segments: list, columns: int) -> Non
                 printer.text(token)
 
             current_col += token_length
+
+    # End the line
+    printer.ln()
 
 
 def _parse_inline_formatting(text: str) -> list:
