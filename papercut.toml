@@ -29,5 +29,5 @@ footer_text = "Made with ❤️ by KaBanks"
 [providers.linear]
 disabled = false
 signing_secret = ""  # Required if not disabled - get from Linear webhook settings
-max_title_length = 350  # Maximum characters for issue title before truncation
-max_description_length = 350  # Maximum characters for issue description before truncation
+max_title_length = 96  # Maximum characters for issue title before truncation
+max_description_length = 480  # Maximum characters for issue description before truncation
