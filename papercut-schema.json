@@ -170,6 +170,34 @@
             }
           },
           "additionalProperties": false
+        },
+        "slack": {
+          "type": "object",
+          "description": "Slack bot print integration. Receives pre-formatted content and prints it directly.",
+          "default": {
+            "disabled": false,
+            "auth_token": "",
+            "max_content_length": 2000
+          },
+          "properties": {
+            "disabled": {
+              "type": "boolean",
+              "description": "Set to true to disable Slack print endpoint",
+              "default": false
+            },
+            "auth_token": {
+              "type": "string",
+              "description": "Optional bearer token for authentication. Leave empty to allow unauthenticated requests. When set, requests must include 'Authorization: Bearer <token>' header",
+              "default": ""
+            },
+            "max_content_length": {
+              "type": "integer",
+              "description": "Maximum characters for print content before truncation",
+              "minimum": 1,
+              "default": 2000
+            }
+          },
+          "additionalProperties": false
         }
       },
       "additionalProperties": false

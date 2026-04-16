@@ -31,6 +31,11 @@ if config.providers.linear and not config.providers.linear.disabled:
 
     app.include_router(linear_router, prefix="/webhooks")
 
+if config.providers.slack and not config.providers.slack.disabled:
+    from papercut.platforms.slack.router import router as slack_router
+
+    app.include_router(slack_router, prefix="/webhooks")
+
 
 @app.get("/", response_model=HealthCheckResponse, summary="Health Check")
 async def health_check() -> HealthCheckResponse:
