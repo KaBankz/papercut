@@ -5,7 +5,7 @@ Print anything on a physical receipt printer by posting markdown content to a si
 ## Endpoint
 
 ```
-POST /webhooks/slack
+POST https://papercut.krabby.dev/webhooks/slack
 Content-Type: application/json
 ```
 
@@ -293,10 +293,23 @@ content = build_ticket(
 
 Content is truncated at **2000 characters** (configurable server-side). Plan your content within this limit.
 
-## curl
+## curl Examples
+
+Simple print:
 
 ```bash
-curl -X POST http://localhost:8000/webhooks/slack \
+curl -X POST https://papercut.krabby.dev/webhooks/slack \
   -H "Content-Type: application/json" \
   -d '{"content": "# Hello\n\nThis is a **test** print."}'
+```
+
+Ticket-style print with two-column details and QR code:
+
+```bash
+curl -X POST https://papercut.krabby.dev/webhooks/slack \
+  -H "Content-Type: application/json" \
+  -d '{
+    "content": "ID:                                       ENG-42\nTeam:                                Engineering\nPriority:                                   High\nStatus:                              In Progress\n\n# Fix login page CSS regression\n\nThe login button overlaps the password field on mobile.\n\n- Regression in PR #127\n- **Blocking** v2.1 release",
+    "footer_url": "https://google.com"
+  }'
 ```
