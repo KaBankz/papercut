@@ -4,6 +4,11 @@ Prints tickets on physical receipt printers using python-escpos.
 """
 
 import logging
+import re
+import urllib.request
+from io import BytesIO
+from datetime import datetime, timezone
+
 from escpos.printer import Usb
 from escpos.exceptions import USBNotFoundError, Error as EscposError
 from papercut.core.models import Ticket
@@ -295,6 +300,161 @@ def print_to_printer(ticket: Ticket) -> None:
         raise
     finally:
         # Always close the printer connection to release the USB device
+        if p is not None:
+            try:
+                p.close()
+                logger.debug("Printer connection closed successfully")
+            except Exception as e:
+                logger.warning(f"Error closing printer connection: {e}")
+
+
+# --- Image pattern for markdown inline images: ![alt](url) ---
+_IMAGE_PATTERN = re.compile(r"!\[([^\]]*)\]\(([^)]+)\)")
+
+
+def _download_and_print_image(p, url: str, center: bool = True) -> None:
+    """
+    Download an image from a URL and print it on the receipt printer.
+
+    Downloads the image into memory, opens it with PIL (already available
+    via python-escpos), and prints it. If the download or printing fails,
+    a placeholder text line is printed instead.
+
+    Args:
+        p: ESC/POS printer instance
+        url: URL of the image to download
+        center: Whether to center the image on the receipt
+    """
+    try:
+        req = urllib.request.Request(url, headers={"User-Agent": "Papercut/0.1.0"})
+        with urllib.request.urlopen(req, timeout=15) as response:
+            image_data = response.read()
+
+        from PIL import Image
+
+        img = Image.open(BytesIO(image_data))
+
+        p.image(img, center=center)
+        p.ln()
+
+        logger.debug(f"Printed image from {url} ({img.size[0]}x{img.size[1]})")
+
+    except Exception as e:
+        logger.warning(f"Failed to download/print image from '{url}': {e}")
+        # Print placeholder text so content flow isn't silently broken
+        p.set_with_default(align="center")
+        p.textln(f"[Image: {url}]")
+        p.set_with_default()
+
+
+def _render_content_with_images(p, content: str) -> None:
+    """
+    Render markdown content that may contain inline images.
+
+    Splits the content on markdown image syntax ![alt](url), renders
+    each text segment as markdown, and downloads/prints each image
+    inline in the content flow.
+
+    Args:
+        p: ESC/POS printer instance
+        content: Markdown content potentially containing ![alt](url) references
+    """
+    from papercut.core.markdown import render_markdown_to_receipt
+
+    last_end = 0
+    for match in _IMAGE_PATTERN.finditer(content):
+        # Render text before this image
+        text_before = content[last_end : match.start()]
+        if text_before.strip():
+            render_markdown_to_receipt(p, text_before)
+
+        # Download and print the image
+        image_url = match.group(2)
+        logger.info(f"Processing inline image: {image_url}")
+        _download_and_print_image(p, image_url)
+
+        last_end = match.end()
+
+    # Render remaining text after last image (or all text if no images)
+    remaining = content[last_end:]
+    if remaining.strip():
+        render_markdown_to_receipt(p, remaining)
+
+
+def print_raw_receipt(
+    content: str,
+    include_header: bool = True,
+    include_footer: bool = True,
+    footer_url: str | None = None,
+    cut: bool = True,
+) -> None:
+    """
+    Print pre-formatted content on the receipt printer.
+
+    Used for raw/pre-formatted print requests (e.g., from a Slack bot)
+    where the caller controls the content layout. Supports markdown
+    formatting and inline images via ![alt](url) syntax.
+
+    Args:
+        content: Markdown-formatted content to print
+        include_header: Whether to print the receipt header (logo, company info)
+        include_footer: Whether to print the receipt footer
+        footer_url: URL to encode as QR code in footer (if None, QR code is skipped)
+        cut: Whether to cut the paper after printing
+
+    Raises:
+        USBNotFoundError: If USB printer not found
+        EscposError: For other printer errors
+    """
+    p = None
+    try:
+        p = _get_printer()
+
+        # Initialize printer to clean state
+        p.hw("INIT")
+
+        # Header
+        if include_header:
+            _print_header(p)
+
+        # Timestamp
+        p.set_with_default(align="center")
+        now = datetime.now(timezone.utc)
+        p.textln(utc_to_local(now).strftime("%b %d, %Y at %I:%M %p"))
+        p.set_with_default()
+        p.ln()
+
+        # Render content (markdown + inline images)
+        _render_content_with_images(p, content)
+
+        # Footer
+        if include_footer and not config.footer.disabled:
+            if footer_url:
+                _print_footer(p, footer_url)
+            else:
+                # Print footer text without QR code
+                p.ln(2)
+                p.set_with_default(align="center")
+                if config.footer.footer_text is not None:
+                    p.set(underline=True)
+                    p.textln(config.footer.footer_text)
+                p.set_with_default()
+
+        if cut:
+            p.cut()
+
+        logger.info("Successfully printed raw receipt")
+
+    except USBNotFoundError:
+        logger.error("Failed to print raw receipt: USB printer not found")
+        raise
+    except EscposError as e:
+        logger.error(f"Failed to print raw receipt: {e}")
+        raise
+    except Exception as e:
+        logger.error(f"Unexpected error printing raw receipt: {e}")
+        raise
+    finally:
         if p is not None:
             try:
                 p.close()

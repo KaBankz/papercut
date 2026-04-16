@@ -55,6 +55,7 @@ class ProvidersConfig:
     """Providers configuration - dynamically populated by provider modules."""
 
     linear: Optional[object] = None  # Will be LinearProviderConfig from provider module
+    slack: Optional[object] = None  # Will be SlackProviderConfig from provider module
 
 
 @dataclass
@@ -220,6 +221,22 @@ def load_config() -> Config:
             f"Linear provider config error (from {config_file_path}):\n{e}"
         ) from e
 
+    # Slack provider (if available)
+    try:
+        from papercut.platforms.slack import (
+            load_config_from_toml as load_slack_config,
+        )
+
+        providers.slack = load_slack_config(toml_data)
+    except ImportError:
+        # Slack provider not installed/available
+        pass
+    except ValueError as e:
+        # Slack config validation failed
+        raise ValueError(
+            f"Slack provider config error (from {config_file_path}):\n{e}"
+        ) from e
+
     # Create config object
     config = Config(
         printer=printer,
@@ -262,6 +279,15 @@ def load_config() -> Config:
         logger.info(f"  max_title_length = {config.providers.linear.max_title_length}")
         logger.info(
             f"  max_description_length = {config.providers.linear.max_description_length}"
+        )
+    if config.providers.slack:
+        logger.info("[providers.slack]")
+        logger.info(f"  disabled = {config.providers.slack.disabled}")
+        logger.info(
+            f"  auth_token = {'***' if config.providers.slack.auth_token else None}"
+        )
+        logger.info(
+            f"  max_content_length = {config.providers.slack.max_content_length}"
         )
     logger.info("=" * 60)
 

@@ -32,3 +32,8 @@ disabled = false
 signing_secret = ""  # Required if not disabled - get from Linear webhook settings
 max_title_length = 96  # Maximum characters for issue title before truncation
 max_description_length = 480  # Maximum characters for issue description before truncation
+
+[providers.slack]
+disabled = false
+auth_token = ""  # Optional bearer token for authentication. Leave empty to allow unauthenticated requests.
+max_content_length = 2000  # Maximum characters for content before truncation
